@@ -11,16 +11,26 @@ public class Robustesse {
 	//	Directories and paths
 	final static String RootPath = System.getProperty("user.dir");
 	final static String ClusterPath = "\\data\\cluster";
+	final static String SolutionPath = "\\data\\solution.cp";
 	
 	static NogoodMatrix mat;
 	static Maneuvers    man;
+	
+	static int acNumber = 5;
+	
 
 	public static void main(String[] args) {
+		
+		//Initiation of mat and man with values from the cluster file
 		mat = new NogoodMatrix();
 		man = new Maneuvers();
+		readCluster(RootPath + ClusterPath); 
 		
-		readCluster(RootPath + ClusterPath);
-
+		//The new configuration is loaded with a pre-existing solution
+		Configuration conf = new Configuration(mat, man, readSolution(RootPath + SolutionPath));
+		
+		conf.isInConflict();
+		System.out.println(conf.getCost());
 	}
 
 	/**
@@ -67,5 +77,40 @@ public class Robustesse {
 		}
 		
 		
+	}
+	
+	/**
+	 * 
+	 * Reads a solution file. Solutions are outputs of the mathematical methods we are going to evaluate in terms of robustness.
+	 * 
+	 * @param filename
+	 * The file to extract the data from
+	 * @return
+	 * An integer table formatted such as ac[i] contains the maneuver index for aircraft i
+	 */
+	
+	static int[] readSolution(String filename){
+		InputStream ips;
+		int[] ac = new int[acNumber];
+		try {
+			ips = new FileInputStream(filename);
+			InputStreamReader ipsr= new InputStreamReader(ips);
+			BufferedReader br = new BufferedReader(ipsr);
+			String line;			
+			try {
+				while((line=br.readLine())!=null)
+				{
+					String[] str =line.split(" ");
+					ac[Integer.parseInt(str[0])] = Integer.parseInt(str[1]);				  
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return ac;
 	}
 }

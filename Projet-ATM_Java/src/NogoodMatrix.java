@@ -32,6 +32,7 @@ public class NogoodMatrix {
 	void readNoGoods(String[] str) {
 		for (int i = 4; i < str.length; i++) {
 			nogoods[Integer.parseInt(str[1])][Integer.parseInt(str[2])][Integer.parseInt(str[3])][Integer.parseInt(str[i])] = true;
+			nogoods[Integer.parseInt(str[2])][Integer.parseInt(str[1])][Integer.parseInt(str[i])][Integer.parseInt(str[3])] = true; //The matrix needs to be symmetrical
 		}
 		
 	}
@@ -48,11 +49,21 @@ public class NogoodMatrix {
 		nAC = Integer.parseInt(str[1]);
 		nMan = Integer.parseInt(str[2]);
 		nogoods = new boolean[nAC][nAC][nMan][nMan];
+		
 	}
 	
-	void print() {
+	/**
+	 * décrit la méthode
+	 * @param i
+	 * hugfvu
+	 * @param text
+	 * gvuvgugv
+	 * @return
+	 * ugvugvugv
+	 */
+	String print(int i, String text) {
 		// TODO OUTPUT of nogood matrix in the cluster format
-		
+		return "toto";
 	}
 	
 	

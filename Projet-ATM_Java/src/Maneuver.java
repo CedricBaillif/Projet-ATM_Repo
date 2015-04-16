@@ -28,6 +28,10 @@ public class Maneuver {
 	//TODO 	
 	}
 	
+	public int getCost() {
+		return c;
+	}
+	
 	
 	
 }

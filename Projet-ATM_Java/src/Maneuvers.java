@@ -5,6 +5,10 @@
  */
 public class Maneuvers {
 	
+	// Trajectory alteration types
+	public static final int ALT_RADIO_OFF = 0;
+	public static final int ALT_REVERSE_HEADING = 1;
+	
 	private int n0,n1,na;
 	
 	private Maneuver[] maneuverSet;
@@ -38,6 +42,36 @@ public class Maneuvers {
 	void readManeuver(String[] str) {
 		Maneuver m = new Maneuver(str);
 		maneuverSet[Integer.parseInt(str[1])] = m;
+	}
+
+	/**
+	 * Get the cost of a specific maneuver
+	 * @param i the index of the maneuver
+	 * @return the cost of the maneuver
+	 */
+	public int getCost(int i) {
+		return maneuverSet[i].getCost();
+	}
+	
+	/**
+	 * Returns the maneuver corresponding to the alteration of an other maneuver using a specific alteration method.
+	 * @param i the original maneuver's index
+	 * @param type the alteration type
+	 * @return the altered maneuver's index
+	 */
+	public int getAlteredManeuver(int i, int alt_type) {
+		switch (alt_type) {
+		case Maneuvers.ALT_RADIO_OFF:
+			//TODO get a maneuver from indices
+			return 0;
+			
+		case Maneuvers.ALT_REVERSE_HEADING:
+			//TODO get a maneuver from indices
+			return 0;
+
+		default:
+			return i;
+		}
 	}
 
 }
