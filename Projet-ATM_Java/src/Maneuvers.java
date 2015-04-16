@@ -21,6 +21,14 @@ public class Maneuvers {
 	}
 	
 	/**
+	 * Returns the number of maneuver 
+	 * @return the number of maneuver 
+	 */
+	int size(){
+		return maneuverSet.length;
+	}
+	
+	/**
 	 * Initializing maneuverSet Array from a "cluster file" header
 	 * @param str
 	 * String Array : d n m n0 n1 na
@@ -62,8 +70,9 @@ public class Maneuvers {
 	public int getAlteredManeuver(int i, int alt_type) {
 		switch (alt_type) {
 		case Maneuvers.ALT_RADIO_OFF:
-			//TODO get a maneuver from indices
-			return 0;
+			//TODO get a maneuver from indices 
+			
+			return 150; // TEMPORARY !!
 			
 		case Maneuvers.ALT_REVERSE_HEADING:
 			//TODO get a maneuver from indices

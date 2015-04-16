@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class Robustesse {
 	
@@ -18,6 +20,7 @@ public class Robustesse {
 	
 	static int acNumber = 5;
 	
+	static int[][] super_solutions;
 
 	public static void main(String[] args) {
 		
@@ -29,8 +32,41 @@ public class Robustesse {
 		//The new configuration is loaded with a pre-existing solution
 		Configuration conf = new Configuration(mat, man, readSolution(RootPath + SolutionPath));
 		
-		conf.isInConflict();
-		System.out.println(conf.getCost());
+		super_solutions = new int[acNumber][man.size()];
+		
+		System.out.println("Original configuration");
+		conf.printConfiguration();
+		
+		conf.setPerturbation(1, Maneuvers.ALT_RADIO_OFF);
+		
+		System.out.println("Perturbated configuration");
+
+		conf.perturbate();
+		conf.printConfiguration();
+
+		
+		
+		System.out.println("Super solutions");
+		
+		superSolution(conf);
+		
+	}
+	
+	static int superSolution(Configuration c){
+		int s = 0;
+
+		for (int ac = 0; ac < acNumber; ac++) {
+			c.perturbate();
+			for (int i = 0; i < man.size(); i++) {
+				c.setManeuver(ac, i);
+				if (!c.isInConflict()) {
+					s++;
+					super_solutions[ac][i] = c.getCost();
+					c.printConfiguration();
+				}
+			}
+		}
+		return s;
 	}
 
 	/**
