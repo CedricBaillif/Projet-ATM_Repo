@@ -12,6 +12,8 @@ public class Configuration {
 	private NogoodMatrix ngm;
 	private Maneuvers mans;
 	
+	private int acNumber;
+	private int manNumber;
 	
 	Configuration(NogoodMatrix n, Maneuvers m, int[] ac){
 		ngm = n;
@@ -19,7 +21,12 @@ public class Configuration {
 		aircraft = ac;
 		aircraft_pert = Arrays.copyOf(aircraft, aircraft.length);
 		aircraft_back = Arrays.copyOf(aircraft, aircraft.length);
+		
+		acNumber = aircraft.length;
+		manNumber = mans.size();
 	}
+	
+	
 	
 	/**
 	 * Scans the aircraft pairwise to detect conflicts and returns true if at least one pair of aircraft is in conflict
@@ -75,7 +82,7 @@ public class Configuration {
 	 * 
 	 * @return true if the configuration has changed
 	 */
-	boolean unPerturbate(){
+	boolean resetConfig(){
 		boolean r = !Arrays.equals(aircraft, aircraft_back);
 		aircraft = Arrays.copyOf(aircraft_back, aircraft.length);
 		return r;
@@ -97,10 +104,48 @@ public class Configuration {
 	 * Prints the maneuvers followed by the aircraft to the terminal
 	 */
 	void printConfiguration() {
+		
+		System.out.println("| CURR - PERT - ORIG|");
+		
 		for (int i = 0; i < aircraft.length; i++) {
-			System.out.println(aircraft[i] + " | " + aircraft_pert[i] + " | " + aircraft_back[i]);
+			System.out.println("| " + aircraft[i] + "  | " + aircraft_pert[i] + "  | " + aircraft_back[i] + " |");
 		}
-		System.out.println("-------------------");
+		System.out.println("------------------");
+	}
+
+
+	/**
+	 * Returns true if the configuration is a 1-0 SuperSolution. 1-0 Super solutions are solutions that can always be made free of conflicts in the event of
+	 * one aircraft not being able to perform it's original trajectory. This has to be achieved without modifying any other aircraft's trajectory.
+	 * This is the same as checking that every aircraft has a possible backup trajectory that lefts the configuration non-conflictual.
+	 * @return true if the current configuration is a 1-0 SuperSolution
+	 */
+	public boolean isSuperSolution() {
+		IntMatrix m = new IntMatrix(acNumber, manNumber);
+		
+		int[] ss = new int[acNumber];
+		boolean r = true;
+
+		for (int i = 0; i < acNumber; i++) {
+			int linecount = 0;
+			for (int j = 0; j < manNumber; j++) {
+				setManeuver(i, j);
+				if (!isInConflict()) {
+					m.set(i, j, 1);
+					linecount++;
+					//this.printConfiguration();
+				}
+				resetConfig();
+			}
+			ss[i] = linecount;
+			r = r & (linecount >= 2);
+		}
+		/*
+		for (int i = 0; i < ss.length; i++) {
+			System.out.print(ss[i] + "|");
+		}
+		System.out.println();*/
+		return r;
 	}
 	
 	

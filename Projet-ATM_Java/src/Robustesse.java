@@ -21,8 +21,14 @@ public class Robustesse {
 	static int acNumber = 5;
 	
 	static int[][] super_solutions;
+	
+	static long chrono = 0;
 
 	public static void main(String[] args) {
+		
+		chrono = System.currentTimeMillis();
+		
+		System.out.println("Loading files ...");
 		
 		//Initiation of mat and man with values from the cluster file
 		mat = new NogoodMatrix();
@@ -32,26 +38,27 @@ public class Robustesse {
 		//The new configuration is loaded with a pre-existing solution
 		Configuration conf = new Configuration(mat, man, readSolution(RootPath + SolutionPath));
 		
-		super_solutions = new int[acNumber][man.size()];
+		printRunTime();
 		
 		System.out.println("Original configuration");
 		conf.printConfiguration();
 		
-		conf.setPerturbation(1, Maneuvers.ALT_RADIO_OFF);
-		
-		System.out.println("Perturbated configuration");
-
-		conf.perturbate();
-		conf.printConfiguration();
 
 		
+		String s = (conf.isSuperSolution()) ? "is" : "is not";
 		
-		System.out.println("Super solutions");
+		System.out.println("Loaded solution " + s + " a 1-0 supersolution");
 		
-		superSolution(conf);
+		printRunTime();
+		
 		
 	}
 	
+	private static void printRunTime() {
+		System.out.println("Time elapsed : " + (System.currentTimeMillis() - chrono) + " ms");
+		
+	}
+
 	static int superSolution(Configuration c){
 		int s = 0;
 
