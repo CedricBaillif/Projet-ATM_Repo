@@ -105,12 +105,12 @@ public class Configuration {
 	 */
 	void printConfiguration() {
 		
-		System.out.println("| CURR - PERT - ORIG|");
+		System.out.println("| CURR\t- PERT\t- ORIG\t|");
 		
 		for (int i = 0; i < aircraft.length; i++) {
-			System.out.println("| " + aircraft[i] + "  | " + aircraft_pert[i] + "  | " + aircraft_back[i] + " |");
+			System.out.println("| " + aircraft[i] + "\t| " + aircraft_pert[i] + "\t| " + aircraft_back[i] + "\t|");
 		}
-		System.out.println("------------------");
+		System.out.println("-----------------------");
 	}
 
 

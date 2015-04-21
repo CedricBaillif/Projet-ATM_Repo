@@ -5,20 +5,28 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class Robustesse {
 	
-	//	Directories and paths
+	/********************************************* 
+	** 		SCRIPT CONFIGURATION 				**
+	*********************************************/
+	static int acNumber = 10;
+	static int uncertaintyLevel = 2;
+	static int idScenario = 9;
+	static String AlgoType = "cp";
+	/********************************************/
+	
+	//	Directories and file paths
+	final static String filePattern = acNumber + "ac_" + uncertaintyLevel + "err_" + idScenario;
 	final static String RootPath = System.getProperty("user.dir");
-	final static String ClusterPath = "\\data\\cluster";
-	final static String SolutionPath = "\\data\\solution.cp";
+	final static String dataPath = RootPath + "\\data\\RAW\\";
+	final static String clusterFile = dataPath + "cluster_" + filePattern;
+	final static String maneuversFile = dataPath + "man_" + filePattern;
+	final static String solutionFile = clusterFile + "." + AlgoType;
 	
 	static NogoodMatrix mat;
 	static Maneuvers    man;
-	
-	static int acNumber = 5;
 	
 	static int[][] super_solutions;
 	
@@ -33,10 +41,10 @@ public class Robustesse {
 		//Initiation of mat and man with values from the cluster file
 		mat = new NogoodMatrix();
 		man = new Maneuvers();
-		readCluster(RootPath + ClusterPath); 
+		readCluster(clusterFile); 
 		
 		//The new configuration is loaded with a pre-existing solution
-		Configuration conf = new Configuration(mat, man, readSolution(RootPath + SolutionPath));
+		Configuration conf = new Configuration(mat, man, readSolution(solutionFile));
 		
 		printRunTime();
 		
@@ -147,13 +155,15 @@ public class Robustesse {
 					ac[Integer.parseInt(str[0])] = Integer.parseInt(str[1]);				  
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			ips.close();
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+
 		return ac;
 	}
 }
