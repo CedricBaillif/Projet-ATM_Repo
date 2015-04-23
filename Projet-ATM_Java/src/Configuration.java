@@ -20,7 +20,7 @@ public class Configuration {
 		ngm = n;
 		mans = m;
 		aircraft = ac;
-		aircraft_pert = Arrays.copyOf(aircraft, aircraft.length);
+		aircraft_new = Arrays.copyOf(aircraft, aircraft.length);
 		aircraft_back = Arrays.copyOf(aircraft, aircraft.length);
 		
 		
