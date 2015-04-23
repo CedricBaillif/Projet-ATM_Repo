@@ -83,4 +83,9 @@ public class Maneuvers {
 		}
 	}
 
+	public static int getRadioOff() {
+		// TODO to be modified to cover other cases than the 150 maneuvers one
+		return 150;
+	}
+
 }

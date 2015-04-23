@@ -51,37 +51,23 @@ public class Robustesse {
 		System.out.println("Original configuration");
 		conf.printConfiguration();
 		
+		System.out.println("Loaded solution " + ((conf.isSuperSolution()) ? "is" : "is not") + " a 1-0 supersolution");
 
-		
-		String s = (conf.isSuperSolution()) ? "is" : "is not";
-		
-		System.out.println("Loaded solution " + s + " a 1-0 supersolution");
-		
 		printRunTime();
 		
+		conf.setRadioOff(1);
+		
+		conf.printConfiguration();
+		
+		System.out.println("Current configuration " + ((conf.isInConflict()) ? "is" : "is not") + " in conflict");
+		
+		conf.simulatedAnnealingRepair();
 		
 	}
 	
 	private static void printRunTime() {
 		System.out.println("Time elapsed : " + (System.currentTimeMillis() - chrono) + " ms");
 		
-	}
-
-	static int superSolution(Configuration c){
-		int s = 0;
-
-		for (int ac = 0; ac < acNumber; ac++) {
-			c.perturbate();
-			for (int i = 0; i < man.size(); i++) {
-				c.setManeuver(ac, i);
-				if (!c.isInConflict()) {
-					s++;
-					super_solutions[ac][i] = c.getCost();
-					c.printConfiguration();
-				}
-			}
-		}
-		return s;
 	}
 
 	/**

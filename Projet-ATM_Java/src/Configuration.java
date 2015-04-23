@@ -7,8 +7,9 @@ import java.util.Arrays;
 public class Configuration {
 
 	private int[] aircraft; //An aircraft is defined by its index and maneuver
-	private int[] aircraft_pert; //The perturbated configuration
+	private int[] aircraft_new; //Array to store a new configuration (used by the simulated annealing method)
 	private int[] aircraft_back; //The non-perturbated configuration
+	AllowedManeuversMatrix amm; //A Matrix to store restrictions to the maneuvers each aircraft can use
 	private NogoodMatrix ngm;
 	private Maneuvers mans;
 	
@@ -22,8 +23,10 @@ public class Configuration {
 		aircraft_pert = Arrays.copyOf(aircraft, aircraft.length);
 		aircraft_back = Arrays.copyOf(aircraft, aircraft.length);
 		
+		
 		acNumber = aircraft.length;
 		manNumber = mans.size();
+		amm = new AllowedManeuversMatrix(acNumber, manNumber);
 	}
 	
 	
@@ -61,21 +64,25 @@ public class Configuration {
 	 * @param ac The aircraft whose trajectory is modified
 	 * @param type The type of modification to the trajectory (see Maneuvers class)
 	 */
+	/*OBSOLETE
 	void setPerturbation(int ac, int type){
 		aircraft = Arrays.copyOf(aircraft_back, aircraft.length); //Reset the configuration to the backed up configuration
 		int newman = mans.getAlteredManeuver(aircraft[ac],type);
 		aircraft_pert[ac] = newman;
-	}
+	}*/
+	
 	
 	/**
 	 * Sets the configuration into the perturbated setting
 	 * @return true if the configuration has changed.
 	 */
+	/* OBOLETE
 	boolean perturbate(){
 		boolean r = !Arrays.equals(aircraft, aircraft_pert);
 		aircraft = Arrays.copyOf(aircraft_pert, aircraft.length);
 		return r;
 	}
+	*/
 	
 	/**
 	 * Sets the configuration back to its original settings
@@ -105,12 +112,18 @@ public class Configuration {
 	 */
 	void printConfiguration() {
 		
-		System.out.println("| CURR\t- PERT\t- ORIG\t|");
+		System.out.print("| CURR\t- ORIG\t|");
+		for (int i = 0; i < 15; i++) {
+			System.out.print("         V");
+		}
+		System.out.println();
 		
 		for (int i = 0; i < aircraft.length; i++) {
-			System.out.println("| " + aircraft[i] + "\t| " + aircraft_pert[i] + "\t| " + aircraft_back[i] + "\t|");
+			System.out.print("| " + aircraft[i] + "\t| " + aircraft_back[i] + "\t|");
+			amm.printLine(i);
+			System.out.println("|");
 		}
-		System.out.println("-----------------------");
+		System.out.println("-----------------");
 	}
 
 
@@ -121,7 +134,6 @@ public class Configuration {
 	 * @return true if the current configuration is a 1-0 SuperSolution
 	 */
 	public boolean isSuperSolution() {
-		IntMatrix m = new IntMatrix(acNumber, manNumber);
 		
 		int[] ss = new int[acNumber];
 		boolean r = true;
@@ -131,22 +143,46 @@ public class Configuration {
 			for (int j = 0; j < manNumber; j++) {
 				setManeuver(i, j);
 				if (!isInConflict()) {
-					m.set(i, j, 1);
 					linecount++;
-					//this.printConfiguration();
 				}
 				resetConfig();
 			}
 			ss[i] = linecount;
 			r = r & (linecount >= 2);
 		}
-		/*
-		for (int i = 0; i < ss.length; i++) {
-			System.out.print(ss[i] + "|");
-		}
-		System.out.println();*/
 		return r;
 	}
+
+
+
+	public void setRadioOff(int i) {
+		
+		//TODO pour être plus réaliste, il faudrait figer les manoeuvres d'avions ayant déjà débuté leur manoeuvre au moment du "Radio off", et interdire les
+		//maneuvres "anterieures" au radio off pour les avions n'ayant pas manoeuvré. 
+		
+		amm.setRadioOff(i);
+		aircraft[i] = Maneuvers.getRadioOff();
+		
+	}
+
+
+
+	public void simulatedAnnealingRepair() {
+		// TODO Auto-generated method stub
+		
+	}
 	
+	private static double acceptanceProbability(int cost,int newCost, double T){
+		if (newCost < cost) {
+			return 1.0;
+		}
+		return Math.exp((cost - newCost) / T);
+	}
+	
+	
+	//TODO idée d'heuristique --> tourner les avions conflictuels dans le même sens, faire varier d0 et d1 en random
+	private static void generateConfiguration(){
+		
+	}
 	
 }
