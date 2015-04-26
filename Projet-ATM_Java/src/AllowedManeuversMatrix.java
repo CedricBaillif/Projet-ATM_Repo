@@ -41,12 +41,16 @@ public class AllowedManeuversMatrix {
 			System.out.print((elements[i][j]) ? "." : "X");
 		}
 	}
-
-	public void setRadioOff(int i) {
+	
+	/**
+	 * Sets m as the only possible maneuver for aircraft i
+	 * @param i : aircraft index
+	 * @param m : maneuver index
+	 */
+	public void setImposedManeuver(int i,int m) {
 		for (int j = 0; j < elements[i].length; j++) {
-			if (j != Maneuvers.getRadioOff()) set(i,j,false);
+			if (j != m) set(i,j,false);
 		}
-		
 	}
 	
 	

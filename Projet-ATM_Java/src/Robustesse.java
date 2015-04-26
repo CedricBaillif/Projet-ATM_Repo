@@ -59,9 +59,10 @@ public class Robustesse {
 		
 		conf.printConfiguration();
 		
-		System.out.println("Current configuration " + ((conf.isInConflict()) ? "is" : "is not") + " in conflict");
-		
 		conf.simulatedAnnealingRepair();
+
+		conf.printConfiguration();
+
 		
 	}
 	

@@ -5,6 +5,8 @@ import java.util.Arrays;
  * Stores a set of aircraft performing a specific maneuver
  */
 public class Configuration {
+	
+	public static final int CONFLICT_COST = 100;
 
 	private int[] aircraft; //An aircraft is defined by its index and maneuver
 	private int[] aircraft_new; //Array to store a new configuration (used by the simulated annealing method)
@@ -23,7 +25,6 @@ public class Configuration {
 		aircraft_new = Arrays.copyOf(aircraft, aircraft.length);
 		aircraft_back = Arrays.copyOf(aircraft, aircraft.length);
 		
-		
 		acNumber = aircraft.length;
 		manNumber = mans.size();
 		amm = new AllowedManeuversMatrix(acNumber, manNumber);
@@ -32,16 +33,29 @@ public class Configuration {
 	
 	
 	/**
-	 * Scans the aircraft pairwise to detect conflicts and returns true if at least one pair of aircraft is in conflict
+	 * Scans the aircraft pairwise to detect conflicts and returns the number of pair of aircraft in conflict
 	 * @return
-	 * True if at least one pair of aircraft is in conflict 
+	 * The number of pairs of aircraft in conflict 
 	 */
-	boolean isInConflict(){
-		boolean c = false;
+	int getConflictNumber(){
+		int c = 0;
 		for (int i = 0; i < aircraft.length; i++) {
 			for (int j = i+1; j < aircraft.length; j++) {
-				c = c || ngm.get(i, j, aircraft[i], aircraft[j]);
+				c = (ngm.get(i, j, aircraft[i], aircraft[j])) ? c + 1 : c;
 			}
+		}
+		return c;
+	}
+	
+	/**
+	 * 
+	 * @param i
+	 * @return
+	 */
+	private boolean isInConflict(int i) {
+		boolean c = false;
+		for (int j = 0; j < aircraft.length; j++) {
+				c = c || ngm.get(i, j, aircraft[i], aircraft[j]);
 		}
 		return c;
 	}
@@ -58,38 +72,21 @@ public class Configuration {
 		return c;
 	}
 	
-
 	/**
-	 * Sets the perturbated setting. An aircraft's trajectory is modified in a predefined way as set by the type parameter
-	 * @param ac The aircraft whose trajectory is modified
-	 * @param type The type of modification to the trajectory (see Maneuvers class)
+	 * Returns the total cost of this configuration, taking into account the aircraft maneuvers, and a penalty for each conflict
+	 * @return
 	 */
-	/*OBSOLETE
-	void setPerturbation(int ac, int type){
-		aircraft = Arrays.copyOf(aircraft_back, aircraft.length); //Reset the configuration to the backed up configuration
-		int newman = mans.getAlteredManeuver(aircraft[ac],type);
-		aircraft_pert[ac] = newman;
-	}*/
-	
-	
-	/**
-	 * Sets the configuration into the perturbated setting
-	 * @return true if the configuration has changed.
-	 */
-	/* OBOLETE
-	boolean perturbate(){
-		boolean r = !Arrays.equals(aircraft, aircraft_pert);
-		aircraft = Arrays.copyOf(aircraft_pert, aircraft.length);
-		return r;
+	int getSyntheticCost(){
+		
+		return (getCost() + getConflictNumber() * CONFLICT_COST);
 	}
-	*/
 	
 	/**
 	 * Sets the configuration back to its original settings
 	 * 
 	 * @return true if the configuration has changed
 	 */
-	boolean resetConfig(){
+	boolean reset(){
 		boolean r = !Arrays.equals(aircraft, aircraft_back);
 		aircraft = Arrays.copyOf(aircraft_back, aircraft.length);
 		return r;
@@ -108,9 +105,16 @@ public class Configuration {
 	}
 	
 	/**
-	 * Prints the maneuvers followed by the aircraft to the terminal
+	 * Prints to the terminal : the list of maneuvers followed by the aircraft, the original maneuvers set at class instanciation, and the allowed maneuvers 
+	 * matrix
 	 */
 	void printConfiguration() {
+		
+		System.out.println("Current configuration " + ((getConflictNumber() != 0) ? "is" : "is not") + " in conflict");
+		System.out.println("Number of conflicts " + getConflictNumber());
+		printConflicts();
+		System.out.println("Configuration cost :" + getSyntheticCost());
+		
 		
 		System.out.print("| CURR\t- ORIG\t|");
 		for (int i = 0; i < 15; i++) {
@@ -124,6 +128,16 @@ public class Configuration {
 			System.out.println("|");
 		}
 		System.out.println("-----------------");
+	}
+	
+	void printConflicts(){
+		for (int i = 0; i < aircraft.length; i++) {
+			for (int j = i+1; j < aircraft.length; j++) {
+				if (ngm.get(i, j, aircraft[i], aircraft[j])) {
+					System.out.println(i + "-" + j);
+				}
+			}
+		}
 	}
 
 
@@ -142,10 +156,10 @@ public class Configuration {
 			int linecount = 0;
 			for (int j = 0; j < manNumber; j++) {
 				setManeuver(i, j);
-				if (!isInConflict()) {
+				if (getConflictNumber() != 0) {
 					linecount++;
 				}
-				resetConfig();
+				reset();
 			}
 			ss[i] = linecount;
 			r = r & (linecount >= 2);
@@ -160,8 +174,8 @@ public class Configuration {
 		//TODO pour être plus réaliste, il faudrait figer les manoeuvres d'avions ayant déjà débuté leur manoeuvre au moment du "Radio off", et interdire les
 		//maneuvres "anterieures" au radio off pour les avions n'ayant pas manoeuvré. 
 		
-		amm.setRadioOff(i);
-		aircraft[i] = Maneuvers.getRadioOff();
+		amm.setImposedManeuver(i,mans.getRadioOff());
+		aircraft[i] = mans.getRadioOff();
 		
 	}
 
@@ -169,6 +183,7 @@ public class Configuration {
 
 	public void simulatedAnnealingRepair() {
 		// TODO Auto-generated method stub
+		this.generateConfiguration();
 		
 	}
 	
@@ -181,8 +196,21 @@ public class Configuration {
 	
 	
 	//TODO idée d'heuristique --> tourner les avions conflictuels dans le même sens, faire varier d0 et d1 en random
-	private static void generateConfiguration(){
-		
+	private void generateConfiguration(){
+		int turnBias = (Math.random() < 0.5) ? 1 : -1; //We choose a turning side which will be the same for all conflictual aircraft
+		for (int i = 0; i < aircraft.length; i++) {
+			if (isInConflict(i)) {
+				
+				int newMan = mans.turn(aircraft[i],turnBias);
+				
+				if (amm.get(i, newMan)) aircraft[i] = newMan ;
+				
+				
+			}
+		}
 	}
+
+
+
 	
 }
