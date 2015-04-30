@@ -11,9 +11,9 @@ public class Robustesse {
 	/********************************************* 
 	** 		SCRIPT CONFIGURATION 				**
 	*********************************************/
-	static int acNumber = 10;
-	static int uncertaintyLevel = 2;
-	static int idScenario = 9;
+	static int acNumber = 20;
+	static int uncertaintyLevel = 1;
+	static int idScenario = 4;
 	static String AlgoType = "cp";
 	/********************************************/
 	
@@ -33,36 +33,48 @@ public class Robustesse {
 	static long chrono = 0;
 
 	public static void main(String[] args) {
-		
-		chrono = System.currentTimeMillis();
-		
+		//printRunTime();
 		System.out.println("Loading files ...");
 		
-		//Initiation of mat and man with values from the cluster file
+		//	Initiation of mat and man with values from the cluster file
 		mat = new NogoodMatrix();
 		man = new Maneuvers();
 		readCluster(clusterFile); 
 		
-		//The new configuration is loaded with a pre-existing solution
-		Configuration conf = new Configuration(mat, man, readSolution(solutionFile));
-		
-		printRunTime();
-		
-		System.out.println("Original configuration");
-		conf.printConfiguration();
-		
-		System.out.println("Loaded solution " + ((conf.isSuperSolution()) ? "is" : "is not") + " a 1-0 supersolution");
+		//	Initiation of a configuration with a pre-existing solution file
+		Configuration testedConfiguration = new Configuration(mat, man, readSolution(solutionFile));
 
-		printRunTime();
+		//	Statistics object...
+		Statistics STAT = new Statistics();
+		STAT.init_Data(testedConfiguration.getConflictNumber(), testedConfiguration.getSyntheticCost());
 		
-		conf.setRadioOff(1);
-		
-		conf.printConfiguration();
-		
-		conf.simulatedAnnealingRepair();
+		//	Alterations loop of the solution clearances to test robustness
+		System.out.println("\rStarting alterations loop ...");
+		//printRunTime();
+		for (int i = 0; i < acNumber; i++) {
 
-		conf.printConfiguration();
+			//	Perturbation
+			System.out.println("\r\t Radio failure aircraft "+i);
+			Configuration PerturbatedConfig = testedConfiguration.duplicate();
+			PerturbatedConfig.setRadioOff(i,true);
 
+			//	Recherche d'une nouvelle solution
+			SimulatedAnnealing RobustnessAlgorithm = new SimulatedAnnealing(PerturbatedConfig);
+			RobustnessAlgorithm.solve(false);
+			
+			//	Ajout aux statistiques
+			STAT.aircraftOff_Data(
+					i, 
+					RobustnessAlgorithm.getNewConfiguration().getConflictNumber(), 
+					RobustnessAlgorithm.getNewConfiguration().getSyntheticCost(), 
+					testedConfiguration.distance(RobustnessAlgorithm.getNewConfiguration())
+					);
+			
+			//	Affichage
+			testedConfiguration.compareManeuvers(RobustnessAlgorithm.getNewConfiguration());
+		}
+		STAT.printData();
+		//printRunTime();
 		
 	}
 	
@@ -153,4 +165,90 @@ public class Robustesse {
 
 		return ac;
 	}
+}
+
+class Statistics extends Robustesse
+{
+	private int initNbConflicts;
+	private double initCost;
+	
+	private int[] finalNbConflicts = new int[acNumber];
+	private double avg_finalNbConflicts;
+	private double StdDvt_finalNbConflicts;
+	
+	private double[] finalCost = new double[acNumber];
+	private double avg_finalCost;
+	private double StdDvt_finalCost;
+	
+	private double[] distances = new double[acNumber];
+	private double avg_distance;
+	private double StdDvt_distance;
+	
+	public void init_Data(int nbConf, int Cost)
+	{
+		initNbConflicts = nbConf;
+		initCost = Cost;
+	}
+	public void aircraftOff_Data(int aircraft_off, int NbConflicts, double Cost, double distance)
+	{
+		finalNbConflicts[aircraft_off] = NbConflicts;
+		finalCost[aircraft_off] = Cost;
+		distances[aircraft_off] = distance;
+	}
+	
+	private void calculate()
+	{
+		//	Means
+		for (int i = 0; i < acNumber; i++) {
+			avg_finalNbConflicts+= finalNbConflicts[i];
+			avg_finalCost += finalCost[i];
+			avg_distance += distances[i];
+		}
+		avg_finalNbConflicts = avg_finalNbConflicts/acNumber;
+		avg_finalCost = avg_finalCost/acNumber;
+		avg_distance = avg_distance/acNumber;
+		
+		//	Standard deviations
+		for (int i = 0; i < acNumber; i++) {
+			StdDvt_finalNbConflicts+= Math.pow(finalNbConflicts[i] - avg_finalNbConflicts,2);
+			StdDvt_finalCost += Math.pow(finalCost[i] - avg_finalCost,2);
+			StdDvt_distance += Math.pow(distances[i] - avg_distance,2);
+		}
+		StdDvt_finalNbConflicts = Math.pow(StdDvt_finalNbConflicts,0.5);
+		StdDvt_finalCost = Math.pow(StdDvt_finalCost,0.5);
+		StdDvt_distance = Math.pow(StdDvt_distance,0.5);
+	}
+	
+	public void printData()
+	{
+		this.calculate();
+		
+		System.out.println("\ri  initNbConflicts  finalNbConflicts initCost   finalCost  distances");
+		for (int i = 0; i < acNumber; i++) {
+			
+			System.out.print(i);
+			System.out.print(" \t ");
+			System.out.print(initNbConflicts);
+			System.out.print(" \t  \t");
+			System.out.print(finalNbConflicts[i]);
+			System.out.print(" \t  \t");
+			System.out.print(initCost);
+			System.out.print("  \t");
+			System.out.print(finalCost[i]);
+			System.out.print("\t \t");
+			System.out.print(distances[i]);
+			System.out.print(" \t \r");
+			
+		}
+		System.out.println("Conflits:");
+		System.out.println("\t Moyenne : "+ avg_finalNbConflicts);
+		System.out.println("\t Ecart type : "+ StdDvt_finalNbConflicts);
+		System.out.println("Couts:");
+		System.out.println("\t Moyenne : "+ avg_finalCost);
+		System.out.println("\t Ecart type : "+ StdDvt_finalCost);
+		System.out.println("Distances:");
+		System.out.println("\t Moyenne : "+ avg_distance);
+		System.out.println("\t Ecart type : "+ StdDvt_distance);
+	}
+	
 }

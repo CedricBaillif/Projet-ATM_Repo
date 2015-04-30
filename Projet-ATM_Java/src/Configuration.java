@@ -1,3 +1,4 @@
+
 import java.util.Arrays;
 
 
@@ -6,11 +7,9 @@ import java.util.Arrays;
  */
 public class Configuration {
 	
-	public static final int CONFLICT_COST = 100;
+	public static final int CONFLICT_COST = 2500;
 
 	private int[] aircraft; //An aircraft is defined by its index and maneuver
-	private int[] aircraft_new; //Array to store a new configuration (used by the simulated annealing method)
-	private int[] aircraft_back; //The non-perturbated configuration
 	AllowedManeuversMatrix amm; //A Matrix to store restrictions to the maneuvers each aircraft can use
 	private NogoodMatrix ngm;
 	private Maneuvers mans;
@@ -18,12 +17,16 @@ public class Configuration {
 	private int acNumber;
 	private int manNumber;
 	
+	//	La touche du chef
+	private int TURN_AMPLITUDE = 1;
+	private int DELAY_AMPLITUDE = 2;
+	private int EXTEND_AMPLITUDE = 2;
+	
+	
 	Configuration(NogoodMatrix n, Maneuvers m, int[] ac){
 		ngm = n;
 		mans = m;
 		aircraft = ac;
-		aircraft_new = Arrays.copyOf(aircraft, aircraft.length);
-		aircraft_back = Arrays.copyOf(aircraft, aircraft.length);
 		
 		acNumber = aircraft.length;
 		manNumber = mans.size();
@@ -86,10 +89,9 @@ public class Configuration {
 	 * 
 	 * @return true if the configuration has changed
 	 */
-	boolean reset(){
-		boolean r = !Arrays.equals(aircraft, aircraft_back);
-		aircraft = Arrays.copyOf(aircraft_back, aircraft.length);
-		return r;
+	boolean resetAllowedManeuvers(){
+		this.amm.reset();
+		return true;
 	}
 	
 	/**
@@ -109,25 +111,26 @@ public class Configuration {
 	 * matrix
 	 */
 	void printConfiguration() {
-		
-		System.out.println("Current configuration " + ((getConflictNumber() != 0) ? "is" : "is not") + " in conflict");
-		System.out.println("Number of conflicts " + getConflictNumber());
-		printConflicts();
+		int NbConflicts = getConflictNumber();
+		if (NbConflicts != 0) {
+			System.out.println("Current configuration has" + NbConflicts + " conflicts remaining");
+			printConflicts();
+		} else {
+			System.out.println("Current configuration is not in conflict");
+		}
+
 		System.out.println("Configuration cost :" + getSyntheticCost());
+		System.out.println("--------  Allowed Maneuvers Matrix---------");
+		this.amm.print();
+		System.out.println("-------------------------------------------");
 		
-		
-		System.out.print("| CURR\t- ORIG\t|");
-		for (int i = 0; i < 15; i++) {
-			System.out.print("         V");
-		}
-		System.out.println();
-		
+	}
+	
+	void printManeuvers() {
 		for (int i = 0; i < aircraft.length; i++) {
-			System.out.print("| " + aircraft[i] + "\t| " + aircraft_back[i] + "\t|");
+			System.out.print("| " + aircraft[i] + "\t| ");
 			amm.printLine(i);
-			System.out.println("|");
 		}
-		System.out.println("-----------------");
 	}
 	
 	void printConflicts(){
@@ -146,7 +149,7 @@ public class Configuration {
 	 * one aircraft not being able to perform it's original trajectory. This has to be achieved without modifying any other aircraft's trajectory.
 	 * This is the same as checking that every aircraft has a possible backup trajectory that lefts the configuration non-conflictual.
 	 * @return true if the current configuration is a 1-0 SuperSolution
-	 */
+	 *
 	public boolean isSuperSolution() {
 		
 		int[] ss = new int[acNumber];
@@ -165,49 +168,74 @@ public class Configuration {
 			r = r & (linecount >= 2);
 		}
 		return r;
-	}
+	}*/
 
 
 
-	public void setRadioOff(int i) {
+	public void setRadioOff(int i, boolean reset) {
 		
 		//TODO pour être plus réaliste, il faudrait figer les manoeuvres d'avions ayant déjà débuté leur manoeuvre au moment du "Radio off", et interdire les
 		//maneuvres "anterieures" au radio off pour les avions n'ayant pas manoeuvré. 
 		
+		if (reset) resetAllowedManeuvers();
 		amm.setImposedManeuver(i,mans.getRadioOff());
 		aircraft[i] = mans.getRadioOff();
 		
 	}
 
-
-
-	public void simulatedAnnealingRepair() {
-		// TODO Auto-generated method stub
-		this.generateConfiguration();
-		
-	}
+	/**
+	 * Generate a new Configuration close to the initial one,
+	 * according to the allowed maneuvers
+	 * @return
+	 * The new random Configuration object
+	 */
+	public Configuration NewAllowedConfiguration(){
+		Configuration NewConf = this.duplicate();
 	
-	private static double acceptanceProbability(int cost,int newCost, double T){
-		if (newCost < cost) {
-			return 1.0;
-		}
-		return Math.exp((cost - newCost) / T);
-	}
-	
-	
-	//TODO idée d'heuristique --> tourner les avions conflictuels dans le même sens, faire varier d0 et d1 en random
-	private void generateConfiguration(){
-		int turnBias = (Math.random() < 0.5) ? 1 : -1; //We choose a turning side which will be the same for all conflictual aircraft
+		int turnBias = (Math.random() < 0.5) ? TURN_AMPLITUDE : -TURN_AMPLITUDE; //We choose a turning side which will be the same for all conflictual aircraft
 		for (int i = 0; i < aircraft.length; i++) {
 			if (isInConflict(i)) {
 				
 				int newMan = mans.turn(aircraft[i],turnBias);
 				
-				if (amm.get(i, newMan)) aircraft[i] = newMan ;
+				newMan = mans.delay(newMan, (int) Math.floor(Math.random()*(2*DELAY_AMPLITUDE+1)) - DELAY_AMPLITUDE);
+				newMan = mans.extend(newMan, (int) Math.floor(Math.random()*(2*EXTEND_AMPLITUDE+1)) - EXTEND_AMPLITUDE);
 				
 				
+				if (amm.get(i, newMan)) NewConf.aircraft[i] = newMan ;				
 			}
 		}
+		return NewConf;
+	}
+	
+	public double distance(Configuration conf2)
+	{
+		double distance = 0;
+		for (int i = 0; i < this.aircraft.length; i++) {
+			distance+= this.mans.getManeuver(this.aircraft[i]).getDistance(this.mans.getManeuver(conf2.aircraft[i]));
+		}
+		
+		return distance;
+	}
+	
+	/**
+	 * Duplicate a configuration object
+	 * @return
+	 */
+	public Configuration duplicate()
+	{
+		Configuration clone = new Configuration(ngm, mans, Arrays.copyOf(aircraft, aircraft.length));
+		clone.amm = this.amm.duplicate();
+		return clone;
+	}
+
+	public void compareManeuvers(Configuration Conf2) {
+		for (int i = 0; i < aircraft.length; i++) {
+			System.out.print("| " + this.aircraft[i] + "\t| "+ Conf2.aircraft[i] + "\t|");
+			if (this.aircraft[i] != Conf2.aircraft[i]) System.out.print("   <");
+			System.out.println("");
+		}
+		
 	}
 
 

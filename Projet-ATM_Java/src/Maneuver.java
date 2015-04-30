@@ -31,6 +31,30 @@ public class Maneuver {
 	public int getCost() {
 		return c;
 	}
+
+	/**
+	 * Calculate "distance" between tw0 maneuvers
+	 * @param maneuver
+	 * The maneuver to compare with
+	 * @return distance between the two maneuvers
+	 */
+	public double getDistance(Maneuver maneuver) {
+		double distance = 0;
+		
+		//	d0
+		distance+=  Math.pow((this.k0 - maneuver.k0),2);
+		//	d1
+		distance+= Math.pow((this.k1 - maneuver.k1),2);
+		//	alpha
+		distance+= Math.pow((this.ka - maneuver.ka),2);
+	
+		return Math.sqrt(distance);
+	}
+	
+	public void print()
+	{
+		System.out.println(k0 + " - "+ k1 +" - " + ka);
+	}
 	
 	
 	

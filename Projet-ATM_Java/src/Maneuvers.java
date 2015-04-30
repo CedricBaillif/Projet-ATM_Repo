@@ -147,6 +147,38 @@ public class Maneuvers {
 		
 		return maneuverFromTriplet(paramFromManeuver(i,0),paramFromManeuver(i,1),newa);
 	}
+	
+	/**
+	 * Returns the index of a maneuver corresponding to maneuver index i delayed by an amount of d
+	 * @param i
+	 * @param d
+	 * @return the delayed maneuver index
+	 */
+	public int delay(int i, int d) {
+		int newd0 = paramFromManeuver(i,0);
+		
+		newd0 += d;
+		if (newd0 >= n0) newd0 = n0;
+		if (newd0 <=  0) newd0 =  0;
+		
+		return maneuverFromTriplet(newd0,paramFromManeuver(i,1),paramFromManeuver(i,2));
+	}
+	
+	/**
+	 * Returns the index of a maneuver corresponding to maneuver index i extended by an amount of d
+	 * @param i
+	 * @param d
+	 * @return the extended maneuver index
+	 */
+	public int extend(int i, int d) {
+		int newd1 = paramFromManeuver(i,1);
+		
+		newd1 += d;
+		if (newd1 >= n1) newd1 = n1;
+		if (newd1 <=  0) newd1 =  0;
+		
+		return maneuverFromTriplet(paramFromManeuver(i,0),newd1,paramFromManeuver(i,2));
+	}
 
 	public void printMans() {
 		System.out.println((n0+1)*(n1)*(na)+1);
@@ -155,6 +187,16 @@ public class Maneuvers {
 			System.out.print(i+"-"+paramFromManeuver(i,0)+"-"+paramFromManeuver(i,1)+"-"+paramFromManeuver(i,2)+"=>");
 			System.out.println(maneuverFromTriplet(paramFromManeuver(i,0),paramFromManeuver(i,1),paramFromManeuver(i,2)));
 		}
+	}
+	
+	/**
+	 * get the matching Maneuver of manverSet Array
+	 * @param i
+	 * @return the maneuverSet[i] maneuver
+	 */
+	public Maneuver	getManeuver(int i)
+	{
+		return maneuverSet[i];
 	}
 
 }
