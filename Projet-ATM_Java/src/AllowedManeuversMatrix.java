@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 
 /**
  * Handles a matrix representing the allowed maneuvers for each aircraft
@@ -20,7 +22,7 @@ public class AllowedManeuversMatrix {
 	/**
 	 * Reset all elements to true (all maneuvers are possible for all aircraft
 	 */
-	private void reset() {
+	public void reset() {
 		for (int i = 0; i < elements.length; i++) {
 			for (int j = 0; j < elements[0].length; j++) {
 				set(i,j,true);
@@ -40,6 +42,13 @@ public class AllowedManeuversMatrix {
 		for (int j = 0; j < elements[0].length; j++) {
 			System.out.print((elements[i][j]) ? "." : "X");
 		}
+		System.out.print("\r");
+	}
+	
+	public void print() {
+		for (int i = 0; i < elements.length; i++) {
+			printLine(i);
+		}
 	}
 	
 	/**
@@ -53,6 +62,13 @@ public class AllowedManeuversMatrix {
 		}
 	}
 	
+	
+	public AllowedManeuversMatrix duplicate()
+	{
+		AllowedManeuversMatrix cloneAMM = new AllowedManeuversMatrix(this.elements.length, this.elements[0].length);
+		cloneAMM.elements = Arrays.copyOf(this.elements, this.elements.length);
+		return cloneAMM;
+	}
 	
 	
 	

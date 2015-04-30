@@ -15,6 +15,7 @@ public class Test {
 	static Maneuvers    man;
 
 	public static void main(String[] args) {
+		
 		mat = new NogoodMatrix();
 		man = new Maneuvers();
 		
@@ -23,8 +24,16 @@ public class Test {
 
 		readCluster(ClusterPath);
 		
-		System.out.println(mat.get(1, 0, 150, 59));
-		System.out.println(mat.get(1, 0, 150, 60));
+		//System.out.println(mat.get(1, 0, 150, 59));
+		//System.out.println(mat.get(1, 0, 150, 60));
+		Maneuver man1 = man.getManeuver(19);
+		Maneuver man2 = man.getManeuver(128);
+		
+		//System.out.println(man1.c);
+		man1.print();
+		man2.print();
+		System.out.println(man1.getDistance(man2));
+		System.exit(0);
 
 	}
 

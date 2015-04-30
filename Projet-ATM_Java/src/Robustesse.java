@@ -12,8 +12,8 @@ public class Robustesse {
 	** 		SCRIPT CONFIGURATION 				**
 	*********************************************/
 	static int acNumber = 10;
-	static int uncertaintyLevel = 2;
-	static int idScenario = 9;
+	static int uncertaintyLevel = 3;
+	static int idScenario = 8;
 	static String AlgoType = "cp";
 	/********************************************/
 	
@@ -33,7 +33,58 @@ public class Robustesse {
 	static long chrono = 0;
 
 	public static void main(String[] args) {
+		printRunTime();
+		System.out.println("Loading files ...");
 		
+		//	Initiation of mat and man with values from the cluster file
+		mat = new NogoodMatrix();
+		man = new Maneuvers();
+		readCluster(clusterFile); 
+		
+		//	Initiation of a configuration with a pre-existing solution file
+		Configuration testedConfiguration = new Configuration(mat, man, readSolution(solutionFile));
+		System.out.println("Initial solution configuration : ");
+		testedConfiguration.printManeuvers();
+		System.out.println("Initial solution cost : "+ testedConfiguration.getSyntheticCost());
+		System.out.println("Conflicts : " + testedConfiguration.getConflictNumber());
+		
+		//	Alterations loop of the solution clearances to test robustness
+		System.out.println("\rStarting alterations loop ...");
+		//printRunTime();
+		for (int i = 0; i < acNumber; i++) {
+			/**
+			 * La boucle est volontairement CASSEE sur CE cas que l'algo n'arrive même pas à résoudre... :/
+			 */
+			i=2;
+			//	Perturbation
+			System.out.println("\r\t Radio failure aircraft "+i);
+			Configuration PerturbatedConfig = testedConfiguration.duplicate();
+			PerturbatedConfig.setRadioOff(i,false);
+			System.out.println("Perturbated configuration : ");
+			PerturbatedConfig.printManeuvers();
+			System.out.println("Conflicts : " + PerturbatedConfig.getConflictNumber());
+			System.out.println("Perturbated configuration cost : "+ PerturbatedConfig.getSyntheticCost());
+			
+			//	Recherche d'une nouvelle solution
+			SimulatedAnnealing RobustnessAlgorithm = new SimulatedAnnealing(PerturbatedConfig);
+			RobustnessAlgorithm.solve(false);
+			
+			//	Affichage		
+			System.out.println("\r---------  BILAN  ---------\r");
+			
+			System.out.println("testedSolution VS NewSolution :");
+			testedConfiguration.compareManeuvers(RobustnessAlgorithm.getNewConfiguration());
+			
+			System.out.println("Algorithm solution cost : "+ RobustnessAlgorithm.getNewConfiguration().getSyntheticCost());
+			System.out.println("Algorithm solution remaining Conflicts : " + RobustnessAlgorithm.getNewConfiguration().getConflictNumber());
+			
+			System.out.println("Distance between solutions : "+ testedConfiguration.distance(RobustnessAlgorithm.getNewConfiguration()));
+			System.exit(0);
+		}
+		//printRunTime();
+		
+		
+		/**
 		chrono = System.currentTimeMillis();
 		
 		System.out.println("Loading files ...");
@@ -47,23 +98,27 @@ public class Robustesse {
 		Configuration conf = new Configuration(mat, man, readSolution(solutionFile));
 		
 		printRunTime();
+		//		man.printMans();		System.exit(0);
 		
 		System.out.println("Original configuration");
 		conf.printConfiguration();
 		
 		System.out.println("Loaded solution " + ((conf.isSuperSolution()) ? "is" : "is not") + " a 1-0 supersolution");
 
-		printRunTime();
+		//	Radio is Off...
+		int radio_off = 0;
 		
-		conf.setRadioOff(1);
+		conf.setRadioOff(radio_off);
 		
 		conf.printConfiguration();
-		
+		System.exit(0);
 		conf.simulatedAnnealingRepair();
 
 		conf.printConfiguration();
-
 		
+		
+		printRunTime();
+		**/
 	}
 	
 	private static void printRunTime() {

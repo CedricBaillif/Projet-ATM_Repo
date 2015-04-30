@@ -52,20 +52,4 @@ public class NogoodMatrix {
 		
 	}
 	
-	/**
-	 * décrit la méthode
-	 * @param i
-	 * hugfvu
-	 * @param text
-	 * gvuvgugv
-	 * @return
-	 * ugvugvugv
-	 */
-	String print(int i, String text) {
-		// TODO OUTPUT of nogood matrix in the cluster format
-		return "toto";
-	}
-	
-	
-	
 }
