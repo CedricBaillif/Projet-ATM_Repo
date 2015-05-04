@@ -5,16 +5,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Robustesse {
 	
 	/********************************************* 
 	** 		SCRIPT CONFIGURATION 				**
 	*********************************************/
-	static int acNumber = 20;
-	static int uncertaintyLevel = 1;
-	static int idScenario = 4;
+	static int acNumber = 10;
+	static int uncertaintyLevel = 2;
+	static int idScenario = 6;
 	static String AlgoType = "cp";
+	//	script de test : 10,3,8
 	/********************************************/
 	
 	//	Directories and file paths
@@ -32,7 +35,7 @@ public class Robustesse {
 	
 	static long chrono = 0;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		//printRunTime();
 		System.out.println("Loading files ...");
 		
@@ -78,9 +81,14 @@ public class Robustesse {
 		
 	}
 	
-	private static void printRunTime() {
-		System.out.println("Time elapsed : " + (System.currentTimeMillis() - chrono) + " ms");
-		
+	/**
+	 * Print time (hh:mm:ss)
+	 */
+	public static void printRunTime()
+	{
+		Date time = new Date();
+		SimpleDateFormat ft = new SimpleDateFormat ("hh:mm:ss");
+		System.out.println("\rTime :"+ft.format(time));
 	}
 
 	/**
@@ -165,6 +173,7 @@ public class Robustesse {
 
 		return ac;
 	}
+	
 }
 
 class Statistics extends Robustesse

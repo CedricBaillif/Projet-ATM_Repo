@@ -16,6 +16,7 @@ public class Configuration {
 	
 	private int acNumber;
 	private int manNumber;
+	private int NbConflicts;
 	
 	//	La touche du chef
 	private int TURN_AMPLITUDE = 1;
@@ -31,6 +32,7 @@ public class Configuration {
 		acNumber = aircraft.length;
 		manNumber = mans.size();
 		amm = new AllowedManeuversMatrix(acNumber, manNumber);
+		this.NbConflicts = this.getConflictNumber();
 	}
 	
 	
@@ -182,7 +184,7 @@ public class Configuration {
 		aircraft[i] = mans.getRadioOff();
 		
 	}
-
+	
 	/**
 	 * Generate a new Configuration close to the initial one,
 	 * according to the allowed maneuvers
@@ -218,6 +220,15 @@ public class Configuration {
 		return distance;
 	}
 	
+	
+	public String aircraft2csv() {
+		String str = "";
+		for (int i = 0; i < aircraft.length; i++) {
+			str = str + aircraft[i] + ";";			
+		}
+		return "";
+	}
+	
 	/**
 	 * Duplicate a configuration object
 	 * @return
@@ -228,6 +239,8 @@ public class Configuration {
 		clone.amm = this.amm.duplicate();
 		return clone;
 	}
+
+
 
 	public void compareManeuvers(Configuration Conf2) {
 		for (int i = 0; i < aircraft.length; i++) {

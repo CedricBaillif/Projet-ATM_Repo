@@ -1,25 +1,38 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 
-
+/**
+ *  Generic probabilistic metaheuristic for the global optimization problem 
+ *  of locating a good approximation to the global optimum of a given function in a large search space
+ *  (wikipedia)
+ *
+ */
 public class SimulatedAnnealing {
 	
-	//	Ingredients
+	//	Input
 	private Configuration InitialConfiguration;
-	public AllowedManeuversMatrix amm; //A Matrix to store restrictions to the maneuvers each aircraft can use
+	/*
+	 * A Matrix to store restrictions to the maneuvers each aircraft can use
+	 * public AllowedManeuversMatrix amm; 
+	 */
 		
-	//	Cuisson
-	final static double T_0 = 1000;
+	//	Algorithm parameters
+	final static double T_0 = 50000;
 	final static double decreaseRate = 0.001;
 	final static double T_f = 0.1;
 	
-	//	Paramètres de sortie
+	//	Output
 	private Configuration bestConfiguration;
 	private int bestConfigCost;
-	private boolean remainingConflicts;
+	private ArrayList metaData;
+	static public String metaDataParameters[] = {
+		"T","rdmCost","rdmConflictsNb","accept","curCost","curConflictsNb","isBest"
+	};
 	
-	public SimulatedAnnealing(Configuration InitConf)//, AllowedManeuversMatrix Mat)
+	public SimulatedAnnealing(Configuration InitConf)
 	{
 		this.InitialConfiguration = InitConf;
-		//this.amm = Mat;
 	}
 
 	public void setConfiguration(Configuration Conf)
@@ -27,7 +40,8 @@ public class SimulatedAnnealing {
 		this.InitialConfiguration = Conf;
 	}
 	
-	public void solve(boolean chatterBox)
+	
+	public void solve(boolean chatterBox) throws IOException
 	{
 		double temperature = T_0;
 		
@@ -35,51 +49,78 @@ public class SimulatedAnnealing {
 		Configuration currentConfig = InitialConfiguration.duplicate();
 		int cost = currentConfig.getSyntheticCost();
 		
+		//	"Mémoire" du recuit : On garde de coté la meilleure solution actuelle
+		Configuration bestConfig = InitialConfiguration.duplicate();
+		int bestCost = cost;
+		
+		// log
+		ArrayList dumpList = new ArrayList();
+		
 		//	Boucle de recherche d'une solution
 		while (temperature > T_f) {
+			ArrayList metas = new ArrayList();
+			boolean isBest = false;
+			metas.add(temperature);
+			
 			//	on genere une config aléatoire proche
 			Configuration randomConfig = currentConfig.NewAllowedConfiguration();
 			int randomConf_cost = randomConfig.getSyntheticCost();
-			
+			metas.add(randomConf_cost);
+			metas.add(randomConfig.getConflictNumber());
+
+			//	Soit on améliore soit on peut garder en fonction d'une proba en exp(delta_cost/tempe)
 			double random = Math.random();
 			double proba = Math.exp(-Math.abs(randomConf_cost - cost) / temperature);
-			
-			/**
-			 * TODO : les "print" suivants peuvent être affichés ou envoyés vers
-			 * un fichier de log et analysés pour optimiser les paramètres du recuit....
-			 */
-			//System.out.println("T \t| cost |  newcost | deltacost | random | proba ");
-			/*
-			System.out.print(Math.round(temperature*100)/100f + " | ");
-			System.out.print(cost + " \t | ");
-			System.out.print(randomConf_cost + " | ");
-			System.out.print(cost - randomConf_cost  + " | ");
-			System.out.print(Math.round(random*100)/100f + " | ");
-			System.out.print(Math.round(proba*100)/100f + " | \r");
-			*/
-			//currentConfig.compareManeuvers(randomConfig);
-			//System.out.println();
-			
-			//	Soit on améliore soit on peut garder en fonction d'une proba en exp(delta_cost/tempe)
-			if ((randomConf_cost < cost) || (random < proba)) {
+			boolean accept = (randomConf_cost < cost) || (random < proba); 
+			if (accept) {
 
 				currentConfig = randomConfig.duplicate();
 				cost = randomConf_cost;
+				
+				//	A t'on amélioré la best config ?
+				if ( randomConf_cost < bestCost) {
+					bestCost = randomConf_cost;
+					bestConfig = randomConfig.duplicate();
+					isBest = true;
+				}
 			}
+			
+			metas.add(accept);
+			metas.add(cost);
+			metas.add(currentConfig.getConflictNumber());
+			metas.add(isBest);
+			dumpList.add(metas);
 			
 			temperature *= 1-decreaseRate;
 			
 		}
+
+		this.metaData = dumpList;
+				
+		this.bestConfiguration = bestConfig.duplicate();
+		this.bestConfigCost = this.bestConfiguration.getSyntheticCost();
 		
-		this.bestConfiguration = currentConfig.duplicate();
-		this.bestConfigCost = bestConfiguration.getSyntheticCost();
-		
-		//	Impression des résultats
-		if (chatterBox) {
-			System.out.println("C'est cuit ! ");
-			this.bestConfiguration.printConfiguration();
-			this.bestConfiguration.printManeuvers();
+	}
+	
+	public void writeMetaData(String filename) throws IOException {
+
+		FileWriter fw = new FileWriter (filename);
+		for (int h = 0; h < this.metaDataParameters.length; h++) {
+			fw.write (String.valueOf (this.metaDataParameters[h])+";");
 		}
+		fw.write ("\r");
+		
+		for (int i = 0; i < this.metaData.size(); i++) {
+			ArrayList ligne = (ArrayList) this.metaData.get(i);
+			for (int j = 0; j < ligne.size(); j++) {
+				fw.write (String.valueOf (ligne.get(j)));
+		        fw.write (";");
+			}
+			fw.write ("\r");
+		}
+	
+		fw.close();
+
 	}
 	
 	public Configuration getNewConfiguration()
@@ -91,29 +132,12 @@ public class SimulatedAnnealing {
 	{
 		return bestConfigCost;
 	}
+	
+	public ArrayList getMetaData()
+	{
+		return this.metaData;
+	}
 
-	/**
-	 * SimulatedAnnealing method to accept or not a configuration according to its cost
-	 * @param newCost
-	 * Cost of the configuration we are testing 
-	 * @param cost
-	 * Cost of the reference configuration
-	 * @param T
-	 * @return 1 if newCost < cost, an int between ]0,1[ otherwise
-	 *
-	private boolean acceptanceProbability(int newCost,int cost, double T){
-		boolean acceptance;
-		
-		//	Always accept a configuration that improves the cost function
-		if (newCost < cost) {
-			acceptance = true;
-		} else {
-			//	If a configuration doesn't improve the cost function,
-				//acceptance depends on random AND exp(1/T) function 
-			acceptance = (	Math.random() < Math.exp((cost - newCost) / T)	); 
-		}
-		return acceptance;
-	}*/
 	private static double acceptanceProbability(int newCost,int refCost, double T){
 		if (newCost < refCost) {
 			return 1.0;
@@ -123,3 +147,4 @@ public class SimulatedAnnealing {
 		
 
 }
+

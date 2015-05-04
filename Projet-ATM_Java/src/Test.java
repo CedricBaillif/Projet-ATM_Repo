@@ -1,80 +1,73 @@
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 
 public class Test {
 	
 	//	Project directory
 	final static String RootPath = System.getProperty("user.dir");
 	
-	static NogoodMatrix mat;
-	static Maneuvers    man;
-
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
-		mat = new NogoodMatrix();
-		man = new Maneuvers();
+		int nAircraft = 10;
 		
-		String ClusterPath = RootPath + "\\data\\cluster";
-        System.out.println("current dir = " + ClusterPath);
-
-		readCluster(ClusterPath);
+		Serialized test = new Serialized();
+		test.addParam("tempe", Math.random());
+		test.addParam("NbConflicts", nAircraft);
 		
-		//System.out.println(mat.get(1, 0, 150, 59));
-		//System.out.println(mat.get(1, 0, 150, 60));
-		Maneuver man1 = man.getManeuver(19);
-		Maneuver man2 = man.getManeuver(128);
+		int[] tab = new int[nAircraft];
 		
-		//System.out.println(man1.c);
-		man1.print();
-		man2.print();
-		System.out.println(man1.getDistance(man2));
-		System.exit(0);
-
-	}
-
-	
-	static void readCluster(String filename) {
-		
-		InputStream ips;
-		try {
-			ips = new FileInputStream(filename);
-			InputStreamReader ipsr= new InputStreamReader(ips);
-			BufferedReader br = new BufferedReader(ipsr);
-			String line;
+		for (int i = 0; i < nAircraft; i++) {
 			
-			try {
-				while((line=br.readLine())!=null)
-				{
-					String[] str =line.split(" ");
-					switch (str[0]) {
-					case "d":
-						mat.readMeta(str);
-						man.readMeta(str);
-						break;
-					case "c":
-						mat.readNoGoods(str);
-						break;
-					case "m":
-						man.readManeuver(str);
-						break;
-					default:
-						break;
-					}				  
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			double tempe = Math.random();
+			
+			tab[i] = (int) Math.round(i*Math.random()*15);
+		//	test.newLine();
 		}
 		
+		test.addArray("maneuvers", tab);
+	
+		test.print();
+	}
 		
+}
+
+class Serialized {
+	public String ser;
+	
+	
+	Serialized(){
+		ser = "{";
+	}
+	public void addParam(String nomParam, Object value) {
+		ser = ser + ""+ nomParam + ":"+String.valueOf(value) + ";";
+	}
+	
+	public void addArray(String nomArray, int[] tab) {
+		Serialized stringTab = new Serialized();
+		for (int i = 0; i < tab.length; i++) {
+			stringTab.addParam(""+i, tab[i]);
+		}
+		this.addParam(nomArray, stringTab.get());
+	}
+	public void newLine() {
+		ser = ser +  "}\r{";
+	}
+	public void print() {
+		System.out.println(get());
+	}
+	
+	public String get() 
+	{
+		ser = ser + "}";
+		return ser;
 	}
 }
