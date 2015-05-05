@@ -55,12 +55,19 @@ public class SimulatedAnnealing {
 		
 		// log
 		ArrayList dumpList = new ArrayList();
+		int nbIter = 0;
+		int nbAccept = 0;
+		int nbBests = 0;
+		int BestIter = 0;
+		double tempBest = temperature;
 		
 		//	Boucle de recherche d'une solution
 		while (temperature > T_f) {
 			ArrayList metas = new ArrayList();
 			boolean isBest = false;
 			metas.add(temperature);
+			
+
 			
 			//	on genere une config aléatoire proche
 			Configuration randomConfig = currentConfig.NewAllowedConfiguration();
@@ -76,25 +83,40 @@ public class SimulatedAnnealing {
 
 				currentConfig = randomConfig.duplicate();
 				cost = randomConf_cost;
+				nbAccept++;
 				
 				//	A t'on amélioré la best config ?
 				if ( randomConf_cost < bestCost) {
 					bestCost = randomConf_cost;
 					bestConfig = randomConfig.duplicate();
 					isBest = true;
+					nbBests++;
+					BestIter = nbIter;
+					tempBest = temperature;
 				}
 			}
 			
-			metas.add(accept);
+			metas.add((accept) ? 1 : 0);
 			metas.add(cost);
 			metas.add(currentConfig.getConflictNumber());
-			metas.add(isBest);
+			metas.add((isBest) ? 1 : 0);
 			dumpList.add(metas);
 			
 			temperature *= 1-decreaseRate;
 			
+			nbIter++;
+			
 		}
 
+		if (chatterBox) {
+			System.out.println("nbIter: " + nbIter);
+			nbIter = 0;
+			System.out.println(" nbAccept: " + nbAccept);
+			System.out.println(" nbBests: " + nbBests);
+			System.out.println(" BestIter: " + BestIter);
+			System.out.println(" tempBest: " + tempBest);
+		}
+		
 		this.metaData = dumpList;
 				
 		this.bestConfiguration = bestConfig.duplicate();
@@ -104,9 +126,9 @@ public class SimulatedAnnealing {
 	
 	public void writeMetaData(String filename) throws IOException {
 
-		FileWriter fw = new FileWriter (filename);
+		FileWriter fw = new FileWriter (filename + T_0 + "Ti_"+ decreaseRate + "dR_"+ T_f + "Tf"+".csv");
 		for (int h = 0; h < this.metaDataParameters.length; h++) {
-			fw.write (String.valueOf (this.metaDataParameters[h])+";");
+			fw.write (String.valueOf (this.metaDataParameters[h])+",");
 		}
 		fw.write ("\r");
 		
@@ -114,7 +136,7 @@ public class SimulatedAnnealing {
 			ArrayList ligne = (ArrayList) this.metaData.get(i);
 			for (int j = 0; j < ligne.size(); j++) {
 				fw.write (String.valueOf (ligne.get(j)));
-		        fw.write (";");
+		        fw.write (",");
 			}
 			fw.write ("\r");
 		}
