@@ -85,10 +85,10 @@ public class SimulatedAnnealing {
 				}
 			}
 			
-			metas.add(accept);
+			metas.add((accept) ? 1 : 0);
 			metas.add(cost);
 			metas.add(currentConfig.getConflictNumber());
-			metas.add(isBest);
+			metas.add((isBest) ? 1 : 0);
 			dumpList.add(metas);
 			
 			temperature *= 1-decreaseRate;
@@ -106,7 +106,7 @@ public class SimulatedAnnealing {
 
 		FileWriter fw = new FileWriter (filename);
 		for (int h = 0; h < this.metaDataParameters.length; h++) {
-			fw.write (String.valueOf (this.metaDataParameters[h])+";");
+			fw.write (String.valueOf (this.metaDataParameters[h])+",");
 		}
 		fw.write ("\r");
 		
@@ -114,7 +114,7 @@ public class SimulatedAnnealing {
 			ArrayList ligne = (ArrayList) this.metaData.get(i);
 			for (int j = 0; j < ligne.size(); j++) {
 				fw.write (String.valueOf (ligne.get(j)));
-		        fw.write (";");
+		        fw.write (",");
 			}
 			fw.write ("\r");
 		}
