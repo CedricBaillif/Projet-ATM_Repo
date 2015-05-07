@@ -1,9 +1,10 @@
 
 import java.io.IOException;
 
+@Deprecated
 public class SimulatedAnnealingBenchmark extends Robustesse {
 	
-	private static String logFicPath = System.getProperty("user.dir") + "\\data\\log\\benchmark_" + filePattern + "_rdOff_";
+	private static String logFicPath = System.getProperty("user.dir") + "\\data\\log\\benchmark_" + filePattern + "id_";
 	
 	public static void main(String[] args) throws IOException {
 		
@@ -33,7 +34,7 @@ public class SimulatedAnnealingBenchmark extends Robustesse {
 			//	Recherche d'une nouvelle solution et dump dans un fichier de log
 			SimulatedAnnealing RobustnessAlgorithm = new SimulatedAnnealing(PerturbatedConfig);
 			RobustnessAlgorithm.solve(false);
-			RobustnessAlgorithm.writeMetaData(logFicPath + i + ".csv");
+			RobustnessAlgorithm.writeMetaData(logFicPath  + i + "rdOff_");
 		
 			printRunTime();
 		}

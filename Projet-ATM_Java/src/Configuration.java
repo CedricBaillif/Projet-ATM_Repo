@@ -16,12 +16,13 @@ public class Configuration {
 	
 	private int acNumber;
 	private int manNumber;
-	private int NbConflicts;
 	
-	//	La touche du chef
+	//	Maneuvers Amplitude
 	private int TURN_AMPLITUDE = 1;
 	private int DELAY_AMPLITUDE = 2;
 	private int EXTEND_AMPLITUDE = 2;
+
+	private int NbConflicts;
 	
 	
 	Configuration(NogoodMatrix n, Maneuvers m, int[] ac){
@@ -172,8 +173,13 @@ public class Configuration {
 		return r;
 	}*/
 
-
-
+	/**
+	 * Changes aircraft allowed maneuvers to simulate a radio failure
+	 * @param i
+	 * the aircraft to set in radio failure
+	 * @param reset
+	 * reset radio failure aircraft list initially
+	 */
 	public void setRadioOff(int i, boolean reset) {
 		
 		//TODO pour être plus réaliste, il faudrait figer les manoeuvres d'avions ayant déjà débuté leur manoeuvre au moment du "Radio off", et interdire les
@@ -210,6 +216,14 @@ public class Configuration {
 		return NewConf;
 	}
 	
+	/**
+	 * "Distance" from this Configuration and the arg Configuration,
+	 * according to the maneuvers performed
+	 * @param conf2
+	 * The Configuration in comparison
+	 * @return
+	 * the distance, as a square root of maneuvers differences
+	 */
 	public double distance(Configuration conf2)
 	{
 		double distance = 0;
@@ -220,13 +234,17 @@ public class Configuration {
 		return distance;
 	}
 	
-	
+	/**
+	 * Print the configuration aircraft maneuvers as a csv string
+	 * @return
+	 * aircraft maneuvers string, ex : 150,4,58,150,87,
+	 */
 	public String aircraft2csv() {
 		String str = "";
 		for (int i = 0; i < aircraft.length; i++) {
-			str = str + aircraft[i] + ";";			
+			str = str + aircraft[i] + ",";			
 		}
-		return "";
+		return str;
 	}
 	
 	/**
@@ -240,14 +258,23 @@ public class Configuration {
 		return clone;
 	}
 
-
-
-	public void compareManeuvers(Configuration Conf2) {
+	/**
+	 * Checks differences between two configuration and
+	 * displays it in an ascii-like string
+	 * @param Conf2
+	 * The configuration to compare with
+	 * @return
+	 * Ascii-like comparison
+	 */
+	public String compareManeuvers(Configuration Conf2) {
+		String compare = "\r";
 		for (int i = 0; i < aircraft.length; i++) {
-			System.out.print("| " + this.aircraft[i] + "\t| "+ Conf2.aircraft[i] + "\t|");
-			if (this.aircraft[i] != Conf2.aircraft[i]) System.out.print("   <");
-			System.out.println("");
+			compare = compare + "| " + this.aircraft[i] + "\t| "+ Conf2.aircraft[i] + "\t|";
+			if (this.aircraft[i] != Conf2.aircraft[i]) compare = compare + "   <";
+			compare = compare + "\r";
 		}
+		
+		return compare;
 		
 	}
 

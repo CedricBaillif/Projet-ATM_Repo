@@ -1,73 +1,31 @@
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Date;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
 
 public class Test {
 	
-	//	Project directory
-	final static String RootPath = System.getProperty("user.dir");
-	
 	public static void main(String[] args) throws IOException {
 		
-		int nAircraft = 10;
+		launcher Robustness = new launcher(10, 2, 9, "cp");
+		Robustness.setOutputs(true, true, true,true);
+		Robustness.printOutputs();
 		
-		Serialized test = new Serialized();
-		test.addParam("tempe", Math.random());
-		test.addParam("NbConflicts", nAircraft);
+		Robustness.setSimulatedAnnealingAlgorithm(500, 10, 0.001);
 		
-		int[] tab = new int[nAircraft];
+		/*
+		//	3 avions en radioOff
+		Robustness.setRadioOff(1, false);
+		Robustness.setRadioOff(3, false);
+		Robustness.setRadioOff(2, false);
+		Robustness.execSimulatedAnnealing();
+		*/
 		
-		for (int i = 0; i < nAircraft; i++) {
-			
-			double tempe = Math.random();
-			
-			tab[i] = (int) Math.round(i*Math.random()*15);
-		//	test.newLine();
-		}
-		
-		test.addArray("maneuvers", tab);
-	
-		test.print();
-	}
-		
-}
+		//	Boucle sur les radioOffs
+		Robustness.radioOffPerturbations();
 
-class Serialized {
-	public String ser;
-	
-	
-	Serialized(){
-		ser = "{";
+		
+		
+		String chatter = Robustness.console();
+		System.out.println(chatter);
 	}
-	public void addParam(String nomParam, Object value) {
-		ser = ser + ""+ nomParam + ":"+String.valueOf(value) + ";";
-	}
-	
-	public void addArray(String nomArray, int[] tab) {
-		Serialized stringTab = new Serialized();
-		for (int i = 0; i < tab.length; i++) {
-			stringTab.addParam(""+i, tab[i]);
-		}
-		this.addParam(nomArray, stringTab.get());
-	}
-	public void newLine() {
-		ser = ser +  "}\r{";
-	}
-	public void print() {
-		System.out.println(get());
-	}
-	
-	public String get() 
-	{
-		ser = ser + "}";
-		return ser;
-	}
+		
 }
