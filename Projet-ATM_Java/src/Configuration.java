@@ -277,6 +277,20 @@ public class Configuration {
 		return compare;
 		
 	}
+	
+	/**
+	 * Returns the aircraft maneuvers as a readable vector 
+	 * @return
+	 */
+	public String print() {
+		String txt = "\r";
+		for (int i = 0; i < aircraft.length; i++) {
+			txt = txt + "| " + this.aircraft[i] + "\t| ";
+			txt = txt + "\r";
+		}
+		
+		return txt;
+	}
 
 	/**
 	 * Set back all the maneuvers to the default ones

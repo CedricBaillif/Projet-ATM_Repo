@@ -46,17 +46,18 @@ public class launcher {
 	
 	static NogoodMatrix mat;
 	static Maneuvers    man;
+	private Configuration defaultConfiguration;
 	private Configuration testedConfiguration;
 	private Configuration AlgorithmConfiguration;
 
 	private ArrayList<Integer> rdoffs = new ArrayList<Integer>();
 	
-	public launcher(int ac, int err, int id, String algo) {
+	public launcher(int ac, int err, int id) {
 		
 		acNumber = ac;
 		uncertaintyLevel = err;
 		idScenario = id;
-		AlgoType = algo;
+		
 		
 		this.setFilenames();
 		
@@ -66,8 +67,18 @@ public class launcher {
 		readCluster(clusterFile); 
 		
 		//	Initiation of a configuration with a pre-existing solution file
-		this.testedConfiguration = new Configuration(mat, man, readSolution(solutionFile));
+		int[] aircraft = new int[ac];
+		for (int i = 0; i < aircraft.length; i++) aircraft[i] = man.size()-1;
+		this.defaultConfiguration = new Configuration(mat, man, aircraft);
+		//this.testedConfiguration = new Configuration(mat, man, readSolution(solutionFile));
+		this.testedConfiguration = this.defaultConfiguration.duplicate();
 		
+	}
+	
+	public void setSolution(String extension) {
+		AlgoType = extension;
+		launcher.solutionFile = clusterFile + "." + AlgoType;
+		this.testedConfiguration = new Configuration(mat, man, readSolution(solutionFile));
 	}
 	
 	private void setFilenames() {
@@ -80,7 +91,6 @@ public class launcher {
 		
 		launcher.clusterFile = dataPath + "cluster_" + filePattern;
 		launcher.maneuversFile = dataPath + "man_" + filePattern;
-		launcher.solutionFile = clusterFile + "." + AlgoType;
 		
 		launcher.logFicPath 	= RootPath + "\\data\\log\\benchmark_" + filePattern;
 		launcher.resultsFicPath = RootPath + "\\data\\results\\robustness_" + filePattern;
@@ -373,7 +383,11 @@ public class launcher {
 		return this.console;
 	}
 	
-	public int getInitialConfigurationCost() {
+	public int getDefaultConfigurationCost() {
+		return defaultConfiguration.getSyntheticCost();
+	}
+	
+	public int getTestedConfigurationCost() {
 		return testedConfiguration.getSyntheticCost();
 	}
 	
