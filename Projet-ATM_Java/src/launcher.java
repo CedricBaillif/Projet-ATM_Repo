@@ -42,11 +42,13 @@ public class launcher {
 	private boolean resul_O = true;
 	private boolean metadata_O = true;
 	private static String resultsFicPath;
+	public SimulatedAnnealing Algorithm;
 	
 	static NogoodMatrix mat;
 	static Maneuvers    man;
-	static int[][] super_solutions;
-	Configuration testedConfiguration;
+	private Configuration testedConfiguration;
+	private Configuration AlgorithmConfiguration;
+
 	private ArrayList<Integer> rdoffs = new ArrayList<Integer>();
 	
 	public launcher(int ac, int err, int id, String algo) {
@@ -65,7 +67,7 @@ public class launcher {
 		
 		//	Initiation of a configuration with a pre-existing solution file
 		this.testedConfiguration = new Configuration(mat, man, readSolution(solutionFile));
-	
+		
 	}
 	
 	private void setFilenames() {
@@ -133,6 +135,19 @@ public class launcher {
 	}
 	
 	/**
+	 * Determines if the tested Configuration, with its Radio Off settings, is conflicting
+	 * @return
+	 */
+	public boolean isInConflict() {
+		Configuration PerturbatedConfig = this.testedConfiguration.duplicate();
+		for (int i = 0; i < this.rdoffs.size(); i++) {
+			this.add2Print("\rRadio failure aircraft "+ this.rdoffs.get(i) + "\r");
+			PerturbatedConfig.setRadioOff(this.rdoffs.get(i), false);
+		}
+		return (PerturbatedConfig.getConflictNumber() != 0);
+	}
+	
+	/**
 	 * Perturbates a solution and performs a Simulated Annealing algorithm
 	 * IF THE CONFIGURATION IS CONFLICTING
 	 * @throws IOException
@@ -148,6 +163,7 @@ public class launcher {
 
 		if (PerturbatedConfig.getConflictNumber() == 0) {
 			this.add2Print("\r\t ==> Non Conflicting configuration,\r No log/results files have been edited.\r\r");
+			this.AlgorithmConfiguration = this.testedConfiguration;
 			return;
 		}
 		
@@ -158,6 +174,8 @@ public class launcher {
 		details = RobustnessAlgorithm.solve();
 		this.add2Print(this.testedConfiguration.compareManeuvers(RobustnessAlgorithm.getNewConfiguration()));
 		if (this.metadata_O) this.add2Print(details);
+		
+		this.AlgorithmConfiguration = RobustnessAlgorithm.getNewConfiguration();
 		
 		//	Dumping to files
 		this.writeLogFile(RobustnessAlgorithm);
@@ -177,14 +195,12 @@ public class launcher {
 		String filename = launcher.resultsFicPath + "_"+ Math.round(Math.random()*10000000);
 		this.add2Print("\rEcriture du fichier results " + filename + "\r");
 		
-		Configuration solution = robustnessAlgorithm.getNewConfiguration();
-		
 		String m_line = "m," + acNumber + "," + uncertaintyLevel + "," + idScenario + "," ;
 		m_line = m_line + this.rdoffs.toString().replace(",", ";");
 		m_line = m_line.replaceAll("[\\[\\]\\s]", "");
 		m_line = m_line + "," + T_0 + "," + T_f + "," + decreaseRate;
 		
-		String r_line = "r, " + testedConfiguration.getSyntheticCost() + "," + solution.getSyntheticCost() + "," + this.testedConfiguration.distance(solution);
+		String r_line = "r, " + testedConfiguration.getSyntheticCost() + "," + AlgorithmConfiguration.getSyntheticCost() + "," + this.testedConfiguration.distance(AlgorithmConfiguration);
 
 		/**
 		 * m,	nAircraft,	err, 	id, 	rdOff,	T0, 	Tf, 	dR
@@ -198,7 +214,7 @@ public class launcher {
 		fw.write(m_line + "\r");
 		fw.write("i," + testedConfiguration.aircraft2csv()  + "\r" );
 		fw.write("p," + robustnessAlgorithm.InitialConfiguration.aircraft2csv()  + "\r" );
-		fw.write("s," + solution.aircraft2csv()  + "\r" );
+		fw.write("s," + AlgorithmConfiguration.aircraft2csv()  + "\r" );
 		fw.write(r_line  + "\r");
 		fw.close();
 	}
@@ -355,6 +371,18 @@ public class launcher {
 	 */
 	public String console() {
 		return this.console;
+	}
+	
+	public int getInitialConfigurationCost() {
+		return testedConfiguration.getSyntheticCost();
+	}
+	
+	public int getAlgorithmConfigurationCost() {
+		return this.AlgorithmConfiguration.getSyntheticCost();
+	}
+	
+	public double getConfigurationsDistance() {
+		return this.testedConfiguration.distance(this.AlgorithmConfiguration);
 	}
 }
 

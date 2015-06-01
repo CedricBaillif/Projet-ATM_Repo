@@ -18,9 +18,9 @@ public class Configuration {
 	private int manNumber;
 	
 	//	Maneuvers Amplitude
-	private int TURN_AMPLITUDE = 1;
-	private int DELAY_AMPLITUDE = 2;
-	private int EXTEND_AMPLITUDE = 2;
+	static int TURN_AMPLITUDE = 1;
+	static int DELAY_AMPLITUDE = 2;
+	static int EXTEND_AMPLITUDE = 2;
 
 	private int NbConflicts;
 	
@@ -278,6 +278,14 @@ public class Configuration {
 		
 	}
 
+	/**
+	 * Set back all the maneuvers to the default ones
+	 */
+	public void setAircraft2Default() {
+		for (int i = 0; i < aircraft.length; i++) {
+			aircraft[i] = mans.getRadioOff();
+		}
+	}
 
 
 	

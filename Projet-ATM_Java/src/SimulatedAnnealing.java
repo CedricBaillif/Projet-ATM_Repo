@@ -22,7 +22,7 @@ class SimulatedAnnealing {
 	private Configuration bestConfiguration;
 	private int bestConfigCost;
 	private ArrayList metaData  = new ArrayList();
-	static public String metaDataParameters[] = {
+	static private String metaDataParameters[] = {
 		"T","rdmCost","rdmConflictsNb","accept","curCost","curConflictsNb","isBest","currentConf","randomConf"
 	};
 		
@@ -143,13 +143,13 @@ class SimulatedAnnealing {
 		this.bestConfigCost = this.bestConfiguration.getSyntheticCost();
 
 		//	Metadata output...
-		
 		console = console + "\rNb iterations de l'algo : " + nbIter;
 		//nbIter = 0;
 		console = console + "\rNb de fois ou on a accepté une solution: " + nbAccept;
 		console = console + "\rNb de fois ou on a amélioré la best solution: " + nbBests;
 		console = console + "\rL'iteration pour laquelle on a la best sol: " + BestIter;
 		console = console + "\rLa tempé pour laquelle on a la best sol: " + tempBest;
+		console = console + "\rCout initial: " + this.InitialConfiguration.getSyntheticCost();
 		console = console + "\rCout de la best sol: " + this.bestConfigCost;
 		
 		return console + "\r";	
@@ -161,7 +161,7 @@ class SimulatedAnnealing {
 	 */
 	public Configuration getNewConfiguration()
 	{
-		return bestConfiguration;
+		return bestConfiguration.duplicate();
 	}
 	
 	public double getDistance2Initial(Configuration conf) {
