@@ -2,6 +2,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * Useful class to create a loop on all clusters in the dataPath directory
+ * @author Cedric
+ *
+ */
 public class ScanClusters {
 
 	//	Directories and file paths
@@ -21,7 +26,6 @@ public class ScanClusters {
 		for (int i = 0; i < filesList.length; i++) {
 			String filename = filesList[i].getName();
 			
-			//	On selectionne les fichiers solutions
 			if (filename.endsWith(SolFilesPattern)) {
 				
 				String clusterName = filename.split(SolFilesPattern)[0];
@@ -34,6 +38,7 @@ public class ScanClusters {
 					System.out.println(clusterName+" n'existe pas...");
 					continue;					
 				}
+				
 				/*
 				if (!f_man.isFile()) {
 					System.out.println(maneuversName+" n'existe pas...");

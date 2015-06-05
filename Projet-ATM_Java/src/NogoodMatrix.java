@@ -4,8 +4,6 @@
  * 		For each pair of aircraft involved (i,j) and the concerns maneuvers (m_i,m_j)
  * 		Matrix[i][j][m_i][m_j] is true if situation is conflicting
  */
-
-//TODO Renommer la classe en "ConflictMatrix" ?
 public class NogoodMatrix {
 	
 	private boolean[][][][] nogoods;

@@ -70,17 +70,24 @@ public class launcher {
 		int[] aircraft = new int[ac];
 		for (int i = 0; i < aircraft.length; i++) aircraft[i] = man.size()-1;
 		this.defaultConfiguration = new Configuration(mat, man, aircraft);
-		//this.testedConfiguration = new Configuration(mat, man, readSolution(solutionFile));
 		this.testedConfiguration = this.defaultConfiguration.duplicate();
 		
 	}
 	
+	/**
+	 * Defines the Configuration Object of a specified algorithm "solution" file
+	 * @param extension
+	 * Solution file should be located on "dataPath" directory and named "clusterFile"."extension"
+	 */
 	public void setSolution(String extension) {
 		AlgoType = extension;
 		launcher.solutionFile = clusterFile + "." + AlgoType;
 		this.testedConfiguration = new Configuration(mat, man, readSolution(solutionFile));
 	}
 	
+	/**
+	 * Filenames typology
+	 */
 	private void setFilenames() {
 		
 		String filePattern = acNumber + "ac_" + uncertaintyLevel + "err_" + idScenario;
@@ -129,7 +136,6 @@ public class launcher {
 		this.log_O = hasLog;
 		this.resul_O = hasResul;
 		this.metadata_O = hasMeta;
-		//this.printOutputs();
 	}
 	
 	/**
@@ -329,6 +335,14 @@ public class launcher {
 	}
 	
 	/**
+	 * Returns true if TestedConfiguration is a 1_0 SuperSolution
+	 * @return
+	 */
+	public boolean is_1_0_SuperSolution() {
+		return this.testedConfiguration.is_1_0_SuperSolution();
+	}
+	
+	/**
 	 * Dumps algorithm iterations details in a log file (logFicPath)
 	 * @param robustnessAlgorithm
 	 * @throws IOException
@@ -351,12 +365,6 @@ public class launcher {
 			String line = metaData.get(i).toString();
 			line = line.replace(",,", ",");
 			line = line.replaceAll("[\\[\\]\\s]", "");
-			/*
-			for (int j = 0; j < ligne.size(); j++) {
-				fw.write (String.valueOf (ligne.get(j)));
-		        fw.write (",");
-			}
-			*/
 			fw.write( line	);
 			fw.write ("\r");
 		}
@@ -383,20 +391,50 @@ public class launcher {
 		return this.console;
 	}
 	
+	/**
+	 * @return
+	 * The initial Configuration Synthetic cost
+	 */
 	public int getDefaultConfigurationCost() {
 		return defaultConfiguration.getSyntheticCost();
 	}
 	
+	/**
+	 * @return
+	 * The tested Configuration Synthetic cost
+	 */
 	public int getTestedConfigurationCost() {
 		return testedConfiguration.getSyntheticCost();
 	}
 	
+	/**
+	 * @return
+	 * The Algorithm solution Configuration Synthetic cost
+	 */
 	public int getAlgorithmConfigurationCost() {
 		return this.AlgorithmConfiguration.getSyntheticCost();
 	}
 	
+	/**
+	 * Distance between tested Configuration and Algorithm Configuration
+	 * @return
+	 */
 	public double getConfigurationsDistance() {
 		return this.testedConfiguration.distance(this.AlgorithmConfiguration);
+	}
+
+	/**
+	 * @param file
+	 * @throws IOException
+	 */
+	public void exportSolution(String file) throws IOException {
+		FileWriter f = new FileWriter(file);
+		
+		for (int i = 0; i < this.acNumber; i++) {
+			f.write(i + " "+ this.testedConfiguration.getManeuver(i) + "\r");
+		}
+		f.write("sum="+this.testedConfiguration.getCost());
+		f.close();
 	}
 }
 

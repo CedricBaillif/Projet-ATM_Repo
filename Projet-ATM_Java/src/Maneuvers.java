@@ -13,12 +13,7 @@ public class Maneuvers {
 	
 	private Maneuver[] maneuverSet;
 	
-	/**
-	 * TODO Constructeur vide, il faut le supprimer ou y mettre readMeta
-	 */
-	Maneuvers(){
-
-	}
+	Maneuvers(){}
 	
 	/**
 	 * Returns the number of maneuver 
@@ -66,7 +61,7 @@ public class Maneuvers {
 	 * @param i the original maneuver's index
 	 * @param type the alteration type
 	 * @return the altered maneuver's index
-	 */
+	 * 
 	/*
 	public int getAlteredManeuver(int i, int alt_type) {
 		switch (alt_type) {
@@ -86,7 +81,6 @@ public class Maneuvers {
 	*/
 	
 	public int maneuverFromTriplet(int d0, int d1, int alpha){		
-		//int N = (n0+1)*(n1)*(na)+1;
 
 		if(d1 == 0 || alpha == (na+1)/2) {
 			return maneuverSet.length-1;			
@@ -99,7 +93,6 @@ public class Maneuvers {
 	
 	public int paramFromManeuver(int manIndex, int paramIndex){
 		
-		//int N = (n0+1)*(n1)*(na)+1;
 		int A = (n1)*(na);
 		
 		int resultat[]= new int[3];
@@ -124,7 +117,6 @@ public class Maneuvers {
 	 * @return
 	 */
 	public int getRadioOff() {
-		// TODO to be modified to cover other cases than the 150 maneuvers one
 		return (maneuverSet.length - 1);
 	}
 

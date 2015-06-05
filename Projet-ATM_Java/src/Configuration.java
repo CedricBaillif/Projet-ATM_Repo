@@ -7,8 +7,6 @@ import java.util.Arrays;
  */
 public class Configuration {
 	
-	public static final int CONFLICT_COST = 2500;
-
 	private int[] aircraft; //An aircraft is defined by its index and maneuver
 	AllowedManeuversMatrix amm; //A Matrix to store restrictions to the maneuvers each aircraft can use
 	private NogoodMatrix ngm;
@@ -17,14 +15,16 @@ public class Configuration {
 	private int acNumber;
 	private int manNumber;
 	
+	//TODO Must be modified regarding, d_0,d_1 & n_alpha values !!!
+	public int CONFLICT_COST = 60 * this.acNumber;
+	
 	//	Maneuvers Amplitude
 	static int TURN_AMPLITUDE = 1;
 	static int DELAY_AMPLITUDE = 2;
 	static int EXTEND_AMPLITUDE = 2;
 
 	private int NbConflicts;
-	
-	
+		
 	Configuration(NogoodMatrix n, Maneuvers m, int[] ac){
 		ngm = n;
 		mans = m;
@@ -152,26 +152,24 @@ public class Configuration {
 	 * one aircraft not being able to perform it's original trajectory. This has to be achieved without modifying any other aircraft's trajectory.
 	 * This is the same as checking that every aircraft has a possible backup trajectory that lefts the configuration non-conflictual.
 	 * @return true if the current configuration is a 1-0 SuperSolution
-	 *
-	public boolean isSuperSolution() {
+	 */
+	public boolean is_1_0_SuperSolution() {
 		
-		int[] ss = new int[acNumber];
 		boolean r = true;
 
 		for (int i = 0; i < acNumber; i++) {
+			Configuration clone = this.duplicate();
 			int linecount = 0;
 			for (int j = 0; j < manNumber; j++) {
-				setManeuver(i, j);
-				if (getConflictNumber() != 0) {
-					linecount++;
-				}
-				reset();
+				
+				clone.setManeuver(i, j);
+				if (clone.getConflictNumber() == 0) linecount++;
 			}
-			ss[i] = linecount;
-			r = r & (linecount >= 2);
+			if (linecount<2) r = false;
+
 		}
 		return r;
-	}*/
+	}
 
 	/**
 	 * Changes aircraft allowed maneuvers to simulate a radio failure
@@ -181,9 +179,6 @@ public class Configuration {
 	 * reset radio failure aircraft list initially
 	 */
 	public void setRadioOff(int i, boolean reset) {
-		
-		//TODO pour être plus réaliste, il faudrait figer les manoeuvres d'avions ayant déjà débuté leur manoeuvre au moment du "Radio off", et interdire les
-		//maneuvres "anterieures" au radio off pour les avions n'ayant pas manoeuvré. 
 		
 		if (reset) resetAllowedManeuvers();
 		amm.setImposedManeuver(i,mans.getRadioOff());
@@ -299,6 +294,10 @@ public class Configuration {
 		for (int i = 0; i < aircraft.length; i++) {
 			aircraft[i] = mans.getRadioOff();
 		}
+	}
+	
+	public int getManeuver(int n) {
+		return this.aircraft[n];
 	}
 
 

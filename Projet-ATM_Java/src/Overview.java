@@ -2,6 +2,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * Main interface class to perturbate and repare an algorithm solution
+ * @author Cedric
+ */
 public class Overview extends ScanClusters {
 	
 	static int AlgorithmIterations = 5;
@@ -12,15 +16,15 @@ public class Overview extends ScanClusters {
 		FileWriter fw = new FileWriter (dumpFilePath);
 		fw.write("cluster;nbAircraft;uncertainty;clusterId;iterations;rdOff;InitialConfigurationCost;AlgorithmConfigurationCost;ConfigurationsDistance" + "\r");
 		
-		//	Boucle sur les clusters
+		//	Loop on clusters
 		for (int i = 0; i < clusters.size(); i++) {
 			
 			cluster C = (cluster) clusters.get(i);
 						
-			//	Boucle sur les radioOff
+			//	Loop on aircraft (radioOff)
 			for (int k = 0; k < C.nbAircraft; k++) {
 				
-				//	Boucle sur les iterations
+				//	Iterations
 				for (int j = 0; j < AlgorithmIterations; j++) {
 					
 					launcher Robustness = new launcher(C.nbAircraft, C.uncertainty, C.clusterId);

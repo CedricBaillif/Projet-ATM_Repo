@@ -16,18 +16,6 @@ public class Maneuver {
 		ka = Integer.parseInt(str[5]);
 	}
 	
-	void getd0(){
-	//TODO 	
-	}
-	
-	void getd1(){
-	//TODO 	
-	}
-	
-	void getalpha(){
-	//TODO 	
-	}
-	
 	public int getCost() {
 		return c;
 	}
@@ -39,8 +27,8 @@ public class Maneuver {
 	 * @return distance between the two maneuvers
 	 */
 	public double getDistance(Maneuver maneuver) {
-		double distance = 0;
 		
+		double distance = 0;
 		//	d0
 		distance+=  Math.pow((this.k0 - maneuver.k0),2);
 		//	d1
@@ -55,7 +43,5 @@ public class Maneuver {
 	{
 		System.out.println(k0 + " - "+ k1 +" - " + ka);
 	}
-	
-	
 	
 }

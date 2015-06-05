@@ -2,7 +2,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-
+/**
+ * A Interface class file to test our Simulated Annealing algorithm.
+ * Compares Constraint Programming solutions with SA solutions for all clusters
+ * @author Cedric
+ *
+ */
 public class CompareAlgorithms extends ScanClusters {
 
 	static int AlgorithmIterations = 5;
@@ -16,12 +21,12 @@ public class CompareAlgorithms extends ScanClusters {
 		FileWriter fw = new FileWriter (dumpFilePath);
 		fw.write("cluster;nbAircraft;uncertainty;clusterId;iterations;default;CP;SA" + "\r");
 		
-		//	Boucle sur les clusters
+		//	Loop on clusters
 		for (int i = 0; i < clusters.size(); i++) {
 			
 			cluster C = (cluster) clusters.get(i);
 						
-			//	Boucle sur les iterations
+			//	Several iterations
 			for (int j = 0; j < AlgorithmIterations; j++) {
 				
 				launcher Robustness = new launcher(C.nbAircraft, C.uncertainty, C.clusterId);

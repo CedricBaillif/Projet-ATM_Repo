@@ -8,8 +8,6 @@ import java.util.Arrays;
  * @author Romain
  *
  */
-
-
 public class AllowedManeuversMatrix {
 	
 	private boolean[][] elements;
@@ -63,6 +61,10 @@ public class AllowedManeuversMatrix {
 	}
 	
 	
+	/**
+	 * Duplicates the current AMM object
+	 * @return A AMM clone
+	 */
 	public AllowedManeuversMatrix duplicate()
 	{
 		AllowedManeuversMatrix cloneAMM = new AllowedManeuversMatrix(this.elements.length, this.elements[0].length);
