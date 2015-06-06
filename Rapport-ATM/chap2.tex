@@ -1,0 +1,192 @@
+\chapter{Notre outil dans le framework du MAIAA}
+
+\section{Le framework du MAIAA}
+
+Le laboratoire MAIAA travaille, entre autres, sur la résolution de conflits en route. L'équipe optimisation informatique en particulier est au cœur de cette problématique, et a proposé un nouveau cadre [référence article]. Leur approche consiste à séparer complètement le modèle et la résolution. Cela présente en particulier l'avantage de pouvoir tester différents algorithmes de résolution avec un même modèle, et de comparer leur performances respectives.  \\
+
+Leur approche est la suivante : à partir d'un scénario de trafic donné, le programme calcule une matrice 4D indexée par paires d'avions et par paires de manœuvres (c'est à dire trajectoires) qui fournit toutes les données nécessaires à la résolution du problème. \\
+
+Dans ce cadre, on peut utiliser n'importe quel modèle de trajectoire prenant en compte les diverses sources d'incertitudes telles que le vent, les changements de cap, positions de début et fin de manœuvre etc. Une fois que les trajectoires pour chaque manœuvre possible sont calculées, il est très simple de détecter les conflits pour chaque paire d'avions, et de stocker cette information dans une matrice de conflit 4D $C$. Les deux premiers indices spécifient la paire d'avions impliqués, et les deux indices suivants les manœuvres concernées. Par exemple $C_{i,j,k,l}$ renvoie la valeur logique \textit{true} si la manœuvre $k$ pour l'avion $i$ et la manœuvre $l$ pour l'avion $j$ résulte en un conflit, et retourne la valeur logique \textit{false} dans ke cas contraire. Durant la phase de résolution, plutôt de que recalculer toutes les trajectoires, le programme peut se référer très rapidement à cette matrice 4D. \\
+
+Ce modèle a été utilisé [référence au même article] pour tester et comparer deux algorithmes de résolution. Une méta-heuristique (algorithme évolutionniste) qui peut gérer de très grandes instances de problèmes fortement contraint, sans donner de garantie quant à l'optimalité de la solution. Et un programme par contrainte qui a les qualités opposées (peut ne fournir aucun résultat sur une instance de grande taille, mais capable de donner une preuve de l'optimalité).
+
+\subsubsection*{Manœuvres}
+
+Nous allons maintenant nous intéresser au modèle de trajectoire choisi. Pour avoir un espace de solution de taille raisonnable, seules un nombre limité de manœuvres compatibles avec les pratiques actuelles de contrôle aérien et les capacités des FMS ont été considérées pour chaque avion impliqué dans un conflit. Ensuite chaque paire de manœuvre est testée pour chaque paire d'avion sont testée pour déterminer si elles résultent en un conflit ou non. \\
+
+Les routes initiales sont définies par une liste de points. Le premier point $O$ est l'origine, et le dernier point $D$ est la destination (c'est à dire la trajectoire entre deux waypoints). Les avions volent d'un point à un autre et sont capables de corriger l'erreur latérale de leur trajectoire grâce à leurs FMS. Ceci explique que dans les exemples qui suivent l'incertitude associée n'augmente pas avec le temps. Cependant d'autres sources d'incertitudes ne peuvent être gérées par les FMS actuels, et doivent être prises en compte dans notre modèle. Les vitesses des avions sont donc sujettes à une erreur $\varepsilon_{s}$ telle que la position des avions est dispersée dans un intervalle qui croît avec le temps. \\
+
+Dans ce modèle de trajectoire, les manœuvres (c'est à dire changement de cap) sont initiées à un point de la trajectoire initiale caractérisé par la variable de décision $d_{0}$, qui représente la distance curviligne depuis le point origine $O$. A cause de l'incertitude sur la position exacte du point tournant, une erreur distance $\varepsilon_{0}$ est ajoutée autour de ce point. Cela signifie que l'avion peut démarrer sa manœuvre $\varepsilon_{0}$ miles nautiques avant ou après $d_{0}$. \\
+
+Une incertitude $\varepsilon_{\alpha}$ est également associée au changement de cap au point tournant correspondant à $d_{0}$. Ensuite la manœuvre se termine à une distance curviligne $d_{1}$ de $d_{0}$ (c'est à dire à une distance $d_{0} + d_{1}$ du point d'origine $O$), avec une erreur associée $\varepsilon_{1}$ quand l'avion retourne vers son point de destination c'est à dire $D$. \\
+
+Ce type de manœuvre simple, représenté sur la figure n.n, est représentatif des pratiques actuelles des contrôleurs aériens, et peut facilement être exécuté par les pilotes à l'aide de leur FMS (contrairement à des manœuvres continues à des angles et distance arbitraires utilisées dans de nombreux modèles).\\
+
+
+
+Dans le but de limiter le nombre de manœuvres possibles, et donc la taille de l'espace de recherche, $d_{0}$ peut seulement prendre un nombre limité de valeurs $n_{0}$ (typiquement $n_{0} = 5$ dans les tests présentés par la suite). L'altération de cap peut également prendre un nombre de valeurs $n_{\alpha} = 7$, c'est à dire $0,10,20,30$ degrés à gauche ou à droite du cap initial, et le nombre de valeurs de la distance de retour au point de destination est également limité à une valeur $n_{1} = 5$.\\
+
+[insérer figure modèle de manœuvre]\\
+
+Si on considère 5 valeurs pour $d_{0}$, 5 valeurs pour $d_{1}$, et les 6 valeurs possibles pour $\alpha$ (aucune utilité de considérer la valeur $\alpha = 0$ avec les différentes valeurs possibles de $d_{0}$ et $d_{1}$, on considère donc uniquement une manœuvre sans déviation), le nombre de manœuvres par avion est de : \\
+
+\begin{equation}
+n_{man} = n_{0}\times n_{1}\times(n_{\alpha}-1) +1 
+\end{equation}
+
+Et donc pour les tests présentés dans ce rapport : $n_{man} = 5\times 5\times 6 +1 = 151$. Pour une instance de $n$ avions, l'espace de recherche est donc de la taille $n_{man}^{n}\simeq 6.10^{21}$ pour une instance de 10 avions.
+
+\subsubsection*{Variables de décision}
+
+Pour simplifier l'accès à la matrice de conflit $C$, et réduire le nombre de combinaisons à celles qui sont utiles (c'est à dire une seule manoeuvre possible pour $\alpha = 0$), les trois variables de décision $d_{0}, d_{1} et \alpha$ sont agrégées en une seule variable de décision $m_{i}$ par une bijection de l'ensemble des triplets vers un intervalle $[1,n_{man}]$. On appelle $M$ l'ensemble des variables de décision de ce problème : \\
+
+\begin{equation}
+M = {m_{i},i\in [1,n]}
+\end{equation}
+
+\subsubsection*{Coût}
+
+Le coût d'une manœuvre (variable qui servira par la suite à optimiser la recherche de solution dans l'espace de recherche) est calculé ) partir des variables de décision . Les valeurs de $d_{0}$ sont numérotées par un index $k_{0}$ variant dans $[1,n_{0}]$, les valeurs de $d_{1}$ par un index $k_{1}$ variant dans $[1,n_{1}]$, et les valeurs de $\alpha$ par un index $k_{\alpha}$ variant dans $[1,\frac{n_{\alpha}}{2}]$. Dans les tests qui suivent, le coût d'une manœuvre $m_{i}$ pour un avion $i$ est ainsi défini comme : \\
+
+
+\begin{equation}
+cost_{man}(m_{i}) = \begin{cases}
+ 0 &\text{ si }\alpha=0\\
+ 
+ (n_{0}-k_{0})^{2}+k_{1}^{2}+k_{2}^2 &\text{ sinon }
+
+\end{cases}
+\end{equation}
+
+Ce coût est nul dans le cas où l'avion n'effectue aucune manœuvre. De plus ce coût assure les propriétés suivantes : 
+
+\begin{enumerate}
+\item toute manœuvre coûte plus que pas de manœuvre
+\item les manœuvres devraient commencer le plus tard possible
+\item les manœuvres devraient être les plus courtes possibles
+\item les altérations de cap devraient être les plus faibles possibles \\
+\end{enumerate}
+
+Étant donné une instance de n avions, le coût d'une solution est la somme des coûts des manœuvres : \\
+
+\begin{equation}
+cost = \sum_{i=0}^{n}cost_{man}(m_{i})
+\end{equation}
+
+\subsubsection*{Incertitudes}
+
+Lors de la construction des trajectoires des différents avions en fonction des différentes manœuvres qui leur sont affectées, on tient compte des possibles incertitudes possibles. De ce fait, les trajectoires ne sont pas de simples courbes nominales, mais des enveloppes, dont les volumes peuvent varier avec le temps. C'est en vérifiant la distance minimale entre deux enveloppes pour deux avions exécutant deux manœuvres différentes qu'on détermine s'il y a conflit ou non, et ce en se référant aux minima de séparation en vigueur. On n'entre pas plus dans le détail de la façon dont sont calculées ces enveloppes, mais on en donne un exemple à titre d'illustration (figure n.n) : \\
+
+\textbf{[insérer figure donnant une enveloppe de trajectoire]} \\
+
+\textbf{Remarque ; la partie concernant les scénarios sera insérée plus loin dans le rapport. Rubrique prévue à cet effet.}
+
+
+\subsection{Algorithmes utilisés}
+
+Deux algorithmes ont été utilisés pour résoudre des conflits en utilisant le cadre décrit précédemment : un algorithme évolutionniste, et la programmation par contrainte. Voyons rapidement en quoi consistent ces deux algorithmes.
+
+\subsubsection*{Algorithme évolutionniste}
+
+Un algorithme évolutionniste est une méta-heuristique \footnote{Une méta-heuristique est un algorithme d'optimisation visant à résoudre des problèmes difficiles pour lesquels on ne connait pas de méthode classique plus efficace. Source : wikipedia } qui reproduit le comportement naturel de l'évolution. Son fonctionnement est le suivant : on choisit aléatoirement un ensemble de candidats dans l'espace de recherche, et on évalue pour chacun la valeur de la fonction à optimiser. On leur applique ensuite des opérations directement inspirées des processus de l'évolution, à savoir :
+
+\begin{itemize}
+\item un processus de \textbf{sélection} : on choisit les éléments qui satisfont le mieux le critère d'optimisation. \\
+\item un processus de \textbf{croisement} : on croise les éléments entre eux, comme on le ferait pour des plantes par exemple. \\
+\item un processus de \textbf{mutation} : il y a une probabilité non nulle qu'un élément soit modifié de façon aléatoire. \\
+\end{itemize}
+
+Pour chacun de ces processus, on peut bien entendu paramétrer l'algorithme de différente façon. En sélectionnant de façon plus ou moins large à chaque étape, en jouant sur la probabilité d'apparition d'une mutation par exemple.
+
+
+\subsubsection*{Programmation par contrainte}
+\section{Commentaires}
+\section{Notre outil}
+
+\subsection{Cahier des charges technique}
+\lettrine{N}{os principales} priorités lors du développement ont été de favoriser un travail collaboratif efficace, et de produire un outil largement réutilisable.
+Afin de favoriser le développement à plusieurs, nous avons utilisé le service GitHub \footnote{https://github.com/} qui dispose d'un système de gestion de version et permet l'hébergement en ligne du code. Ce service offre une interface avec l'environnement de développement Eclipse \footnote{https://eclipse.org/} que nous avons également retenu.
+
+Produire un outil réutilisable et maintenable nous a poussés à choisir un langage de programmation répandu : le JAVA. Ce langage, orienté objet \footnote{La programmation orientée objet est un paradigme de programmation utilisant des « objets » – structures de données composées de champs de données et de méthodes ayant chacun leurs interactions - pour concevoir des applications et de programmes informatiques. Les techniques de programmation peuvent inclure des fonctionnalités telles que l'abstraction de données, encapsulation, messagerie, modularité, polymorphisme et héritage. \emph{Wikipedia.}}, nous a permis de produire un code structuré. Nous avons défini des classes pouvant être facilement isolées et réutilisées de façon modulaire (voir le diagramme en [ANNEXE]).
+
+De plus, nous avons porté une attention particulière à la normalisation de notre code conformément à la spécification du langage JAVA \cite{javaspec}. La rédaction systématique de commentaires dans le code permettra une compréhension plus facile, et nous a servi à générer une documentation standardisée. Le code et la documentation en Annexe [REF] ont été mis à disposition du laboratoire MAIAA pour une utilisation ultérieure.
+
+Toujours dans la même optique de réutilisabilité, nous nous sommes attachés à rendre nos structures de données interopérables avec celles du framework.
+
+\subsection{Classes Java développées}
+La stabilité d'un algorithme de résolution peut être diagnostiquée grâce à trois actions successivesNous avons identifié que les principaux éléments nécessaires à notre étude de stabilitésont : une ou des méthodes pour perturber ces solutions, un algorithme simple pour les réparer au mieux, et enfin un protocole pour évaluer l'efficacité de cette réparation. 
+
+\subsection{Structure des données d'entrée}
+Expliquer brièvement comment se présentent les données, ainsi que les fichiers solutions qu'on manipule.
+Le programme utilise en entrée les "cluster" mis à disposition par le laboratoire MAIAA. Un fichier cluster est associé à un scénario impliquant $n$ avions, chacun d'eux pouvant choisir parmi $t$ trajectoires, parcourues avec un niveau d'incertitude $\epsilon$. Le fichier cluster contient la matrice de conflit 4D et la liste des trajectoires telles que définies au \ref{appmaiaa}. Le codage du fichier permet de distinguer les lignes relatives aux méta-données (d), aux conflits (c), et aux manœuvres (m).\\
+
+
+\begin{tabular}{|l|}
+\hline
+d 5 151 5 6 7 \\
+c 0 1 0 6 7 8 12 15 \\
+c 0 1 1 0 1 2 5 8 9 14 \\
+... \\
+m 0 26 0 1 0 \\
+m 1 21 0 1 1 \\
+m 2 18 0 1 2 \\
+... \\
+\hline
+\end{tabular}\\
+
+
+Le programme prend également en entrée les solutions d'algorithmes dont on cherche à évaluer la robustesse
+
+\subsection{Données de sortie et fichiers journal}
+
+On explique comment nos logs sont surpuissants pour analyser le fonctionnement du programme
+
+\subsection{Structure du programme}
+
+\subsection{Principe }
+
+Comme on l'a vu précédemment, les méta-heuristiques sont les algorithmes les plus adaptés à la résolution de problèmes combinatoires tels que la résolution de conflits entre avions. Pour réparer les solutions perturbées, nous avons choisi d'utiliser l'un d'entre eux : le recuit simulé, dont on va présenter brièvement le principe dans cette section.\\
+
+Le recuit simulé est un algorithme introduit dans les années 1980 par trois chercheurs d'IBM : S. Kirkpatrick, C.D. Gelatt et M.P. Vecchi. Il s'inspire d'un processus utilisé en métallurgie qui consiste à refroidir un métal en alternant des phases de refroidissement lent et de réchauffage (recuit) pour atteindre un extremum d'énergie. \\ 
+
+Commençons par exposer une méthode de recherche de minimum local. Imaginons que l'on veuille trouver le minimum de la fonction représentée sur la figure x.x. On décide de commencer notre recherche à partir d'un certain point de la courbe, par exemple celui représenté par le cercle numéroté 0. Une méthode consisterait à ensuite étudier une configuration voisine, par exemple celle représentée par le cercle numéroté 1. On constate que la valeur de la fonction pour la configuration 1 est supérieure à celle pour la configuration 2. On ne retient donc pas cette configuration, et on revient à la précédente. On teste ensuite la configuration 2. Cette fois la valeur de la fonction est inférieure, nous sommes sur la bonne voie. On continue donc dans cette direction, et on constate que la valeur de la fonction est de nouveau plus faible pour la configuration 3. On poursuit et on constate cette fois que la configuration 4 fait augmenter la valeur de notre fonction, on revient donc à la valeur précédente, qui constitue bien un minimum. Cependant on constate en analysant la courbe, que ce minimum constitue un minimum local, et non global \footnote{Un tel algorithme est dit \emph{glouton}. Il n'est pas optimal pour la majorité des problèmes combinatoires, à quelques exceptions près comme le problème du rendu de monnaie (avec un système de monnaie canonique).}. Comment atteindre ce dernier ?\\
+
+Pour cela il faut faire en sorte que notre algorithme ne soit pas « piégé » dans un minimum local, et puisse explorer l'ensemble de l'espace des solutions. Pour cela l'algorithme de recuit simulé autorise à garder une configuration, même si elle n'améliore pas le paramètre que l'on cherche à optimiser. Et ce avec une probabilité calculée à partir d'un paramètre appelé température, en référence au modèle thermodynamique du recuit en métallurgie. Voici comment fonctionne l'algorithme : à chaque itération, on considère une configuration voisine de la précédente. Si cette configuration diminue la valeur de la fonction, on la garde. Si elle l'augment au contraire, on ne la rejette pas forcément. On l'accepte avec une probabilité donnée par :\\
+
+\begin{equation}
+P_a = \exp -(\frac{\Delta f}{T}) 
+\end{equation}
+
+Où $T$ est la température, et $\Delta f = f_{i+1} - f_{i}$. Regardons ce que cela donne avec un schéma semblable au précédent : \\
+
+On constate que l'algorithme peut explorer les parties de la fonction qui lui étaient auparavant interdites. Bien sûr si on laisse tourner l'algorithme de cette façon, et qu'on a réglé la température de sorte  que la probabilité d'accepter une configuration non optimale soit élevée, un autre problème surgit. L'algorithme parcourt certes toute la courbe de la fonction, mais ne s'arrête jamais nulle part. A l'inverse si l'on a réglé la température trop basse, la probabilité d'accepter une configuration non optimale est proche de zéro, l'algorithme ne fait rien de plus qu'une recherche locale. Il faut donc régler la température judicieusement, de manière à explorer toute la courbe au début, et une fois arrivé dans la zone où se trouve le minimum global, y rester pour faire une recherche locale. \\
+
+Cela peut se faire si la température est une fonction décroissante du temps. On peut utiliser par exemple une loi du type : $ T_{i+1} = 0,99{Ti}$\\
+
+\subsection*{Heuristique de recherche}
+
+Lors de l'exploration de la fonction que l'on cherche à minimiser, l'algorithme de recuit simulé ne peut se contenter d'explorer au hasard. En effet, dans notre problème l'espace à balayer est bien trop grand. Aussi il faut choisir judicieusement comment l'algorithme va tenter de se rapprocher d'un minimum. Pour cela, on essaie des méthodes prédéfinies : les heuristiques.
+
+Prenons un exemple d'heuristique. Vous déménagez, et vous souhaitez remplir votre camion avec tous vos biens en laissant le moins d'espace libre possible. Vos objets ont des tailles très différentes, et il existe un nombre extrêmement grand de combinaisons possibles pour les placer dans le camion. Il n'est pas envisageable de tester toutes les combinaisons, cela prendrait trop de temps. Une heuristique efficace consiste à placer d'abord les plus gros objets, puis de remplir les espaces laissés libres avec les plus petits. Ainsi vous avez de grandes chances de trouver un agencement suffisamment optimisé pour que tout rentre dans le camion.
+
+Dans notre problème, l'heuristique choisie consiste à tourner les avions conflictuels dans le même sens. C'est la méthode qu'appliquent effectivement les contrôleurs, et elle est efficace pour résoudre un conflit. Afin de parcourir un peu plus l'espace à la recherche d'un minimum, on modifie également la trajectoire des avions non-conflictuels de façon aléatoire en restant au voisinage.
+
+\subsection*{Notion de solution voisine}
+
+Les trajectoires suivies par les avions sont caractérisées par 3 paramètres, $d_0$, $d_1$ et $/alpha$. La proximité de deux trajectoires entre elles est évaluée à l'aide d'une distance :
+
+\begin{equation}
+D = \sqrt{(d_{02}-d_{01})^2 + (d_{12}-d_{11})^2 + (\alpha_2-\alpha_1)^2)}
+\end{equation}
+
+L'outil calcule pour chaque avion la distance entre la trajectoire d'origine et la trajectoire de la solution réparée, puis calcule la somme de ces distances.
+
+Nous avons utilisé le calcul des distances entre trajectoires afin de savoir si notre algorithme allait chercher des solutions très différentes de la solution d'origine, ou à l'inverse restait confiné à une recherche locale. 
+
+[Conclusions à insérer : est ce que la distance de recherche est satisfaisante ? peut on faire mieux ?]
+
+\subsection*{Diagramme}
+
+Voici un diagramme qui résume le recuit simulé : \\
+
+

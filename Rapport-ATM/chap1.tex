@@ -1,0 +1,119 @@
+\chapter{Résolution de conflits dans le trafic aérien}
+
+Dans cette section sont présentées quelques notions très générales sur le problème de la résolution de conflits dans le domaine du trafic aérien. Dans un premier temps quelques définitions de base sont données, puis est proposé un cadre général décrivant le problème avant d'aborder enfin la notion centrale étudiée dans ce projet, à savoir la robustesse des solutions trouvées au problème.
+
+\section{Quelques définitions} 
+
+On s'intéresse aux conflits que l'on peut rencontrer dans le trafic aérien, et spécifiquement dans le domaine En-Route, dans l'optique de proposer à moyen terme un outil d'aide à la résolution pour le contrôleur. Dans ce projet l'étude est limitée à des conflits dans le plan horizontal.
+
+\begin{definition}
+Deux avions sont dits en "conflit" si leurs trajectoires futures les amènent à se trouver simultanément à des positions ne respectant pas une norme de séparation fixée. \footnote{Il est à noter qu'on peut parfaitement avoir des conflits impliquant plus de deux avions. La définition reste valide, il suffit l'appliquer respectivement à chaque paire d'avions.}
+\end{definition}
+
+La première capacité attendue d'un outil de résolution de conflits devra donc être de détecter ces derniers. \footnote{L'implémentation d'un MTCD (Medium Term Conflict Detection) sur les positions de contrôle est un des objectif du programme SESAR.} On pourrait se contenter de cette détection, qui serait déjà une aide très utile pour le contrôleur. Mais la recherche s'attelle aussi à proposer une aide à la résolution de ces conflits, c'est à dire :
+
+\begin{definition}
+Proposer une trajectoire alternative impliquant une déviation minimale, et permettant de respecter les normes de séparation.
+\end{definition}
+
+Il convient de préciser ici ce que peut être une trajectoire alternative, qu'on nommera par la suite une \textbf{solution}. Un algorithme de recherche peut en effet proposer des solutions présentant diverses caractéristiques : \\
+
+\begin{itemize}
+\item une \textbf{solution}, même médiocre. \footnote{L'algorithme fournit des trajectoires alternatives, mais celle ci ne garantissent pas l'absence de conflits \textit{in fine}.} \\
+\item un \textbf{optimum local}, c'est à dire que l'algorithme choisit arbitrairement une priorité pour les avions et/ou un sens de manœuvre. \footnote{Cela réduit de façon drastique la difficulté du problème, et on verra plus loin que c'est un élément qui a été utilisé dans l'algorithme de réparation de solutions.} \\
+\item un \textbf{optimum global}, c'est à dire la meilleure solution possible.\\
+\item l'algorithme peut, ou pas,\textbf{ prouver l'existence, ou l'absence} de solution.\\
+\item l'algorithme peut, ou pas, \textbf{prouver l'optimalité} de cette solution. \\
+\end{itemize}
+
+Le programme produit dans le cadre de ce projet en particulier est capable de fournir une solution en toute circonstance, même si comme mentionné plus haut, rien ne garantit que tous les conflits soient réglés par celle-ci. De la même façon, même si la solution proposée règle les conflits, il n'est pas assuré que cette solution soit la meilleure possible. Ceci est dû au type d'algorithme utilisé, qui est une méta-heuristique. \footnote{En l'occurrence c'est l'algorithme de recuit simulé (Simulated Annealing), qui sera décrit en détail plus loin. }
+
+
+\section{Modélisation du problème}
+
+Le problème de détection et résolution de conflits a été abordé par de nombreuses équipes de recherche dans le monde et depuis de nombreuses années. Dans leur article \cite{Kuchar} James K. Kuchar et Lee C. Yang ont recensé pas moins de 33 approches différentes. \footnote{Parmi lesquelles des travaux conduits par des chercheurs de l'ENAC.} Ils y présentent également un cadre général de description des différents modèles.\footnote{ En particulier la relation entre la détection et la résolution est importante. En effet le moment où il faut agir pour résoudre le conflit peut dépendre du type d'action envisagée. A l'inverse, ce dernier peut dépendre de la précocité avec laquelle on peut mettre en œuvre l'action de résolution.} Ce cadre est présenté brièvement, et est résumé par la schéma de la figure n.n.
+
+\subsection*{Environnement et situation initiale}
+
+Dans un premier temps il faut recueillir des informations sur l'environnement afin d'obtenir une situation initiale pour \textit{"nourrir"} l'algorithme. Les informations doivent être collectées à l'aide de capteurs et d'équipements de communication (Données Radar, Data-Link). Ces informations fournissent une estimation de la situation actuelle du trafic (positions et vitesses des avions). Due à l'imprécision des capteurs, il y une incertitude sur ces valeurs. A noter que dans le cadre de ce projet ce sont des scénarii de trafic \textit{"artificiels"}, et non pas du trafic réel qui ont été utilisés.
+
+\subsection*{Modèle dynamique}
+
+Un élément très important est le modèle dynamique de prédiction de trajectoire.  Le rôle de celui-ci est, à partir d'une situation initiale donnée, de prédire la position et la vitesse des différents avions dans le futur. Et ce dans le but de déterminer l'existence de conflits, en analysant les distances minimales entre les enveloppes de trajectoires des différents avions. Ce modèle dynamique peut être alimenté par la situation initiale uniquement, ou être enrichi par d'autres informations comme par exemple celles contenues sur les plans de vol des avions. \footnote{Il est à noter que ce modèle dynamique est essentiel. En effet la précision avec laquelle celui-ci est capable de prévoir les trajectoires des avions est critique pour la phase ultérieure de résolution. Cet aspect sera abordé plus loin.}
+
+\subsection*{Mesures}
+
+A l'aide la situation initiale et du modèle dynamique, on calcule certaines \textit{"mesures"} qui permettent ensuite de déterminer si on va avoir un conflit ou pas. Typiquement ce peut-être la mesure de la distance minimum de séparation entre les deux appareils, et c'est celle qui nous intéressera dans le cadre de ce projet.
+
+\subsection*{Détection}
+
+Une fois les mesures qui nous intéressent calculées, l'étape suivante est celle de la détection. Souvent la décision est basée uniquement sur la comparaison de valeurs par rapports à des seuils. Par exemple si le temps avant impact entre deux avions est inférieur à une valeur donnée.
+
+\subsection*{Résolution}
+
+Quand une action est nécessaire, la phase de résolution de conflit nécessite de déterminer un moyen d'action. Par exemple fournir au contrôleur un ensemble de manœuvres (caps, niveau, vitesse) à faire exécuter par les avions 
+
+\textbf{Insérer ici le diagramme qui résume cette modélisation} \\
+
+A chacune de ces phases, on peut adopter différentes approches. Évoquons en quelques unes en commençant par le modèle de propagation : \\
+
+\begin{itemize}
+\item \textbf{Propagation nominale} : à partir des positions et vitesses initiales des avions, on applique simplement les équations de la cinématique pour obtenir les trajectoires nominales. Bien sûr les avions de ne se comportent pas comme le prédit ce modèle dynamique à cause de nombreuses incertitudes. Cette incertitude est particulièrement importante pour la détection de conflits à long terme. Malgré tout ce modèle permet d'obtenir une estimation "au premier ordre" des conflits possibles.\\
+\item \textbf{Worst-case projection} : on considère que chaque avion suit la trajectoire la pire possible en terme de création de conflits. \\
+\item \textbf{Approche probabiliste} : c'est une approche équilibrée. Pour un avion donné, on calcule en chaque point de l'espace la probabilité qu'a l'avion de s'y trouver à tout instant. Cette approche tient compte des incertitudes qui peuvent affecter les trajectoires : incertitudes liées aux capteurs, liées aux aléas météo ...\\
+\end{itemize}
+
+Pour la résolution de conflit également il existe une variété d'approches, parmi lesquelles on peut noter : \\
+
+\begin{itemize}
+\item \textbf{résolution basée sur les règles} : imiter le comportement des contrôleurs. Algorithme basés sur les réseaux de neurones par exemple. L'algorithme apprend en observant ce que des contrôleurs qualifiés ont fait dans la réalité. \\
+\item \textbf{algorithmes génétiques} : algorithmes qui miment le fonctionnement de l'ADN (sélection, mutation, croisements). \\
+\item \textbf{forces répulsives} : on utilise des équations modifiées de l'électrostatique pour déterminer les manœuvres de résolution.
+\end{itemize}
+
+
+
+
+
+\section{Robustesse}
+\subsection{Faire face à l'incertitude}
+\lettrine{L}{orsqu'on} cherche à résoudre un problème, comme celui de conflits entre avion En-Route, il convient de le modéliser. Cette modélisation est nécessaire pour renseigner la méthode de résolution. Dans le cas qui nous occupe cela consiste à fournir au programme les positions initiales des appareils, leurs vitesses ainsi que leurs destinations. Cependant lorsqu'on traite un problème concret comme celui-ci, il est très probable qu'on ait à faire face à des incertitudes qui peuvent, dans une certaine mesure, rendre notre modélisation, et in fine la solution calculée caduque. Par exemple le vent est un paramètre aléatoire qu'on ne peut pas prévoir avec une précision infinie, et peut varier de façon importante. La trajectoire de l'appareil calculée sera donc affectée par une certaine incertitude. \\
+
+
+On voit donc que trouver une solution parfaitement optimale à un problème donné n'est pas la seule préoccupation qu'on doit avoir à l'esprit. Encore faut-il que cette solution puisse "faire face" à l'incertitude inhérente au problème donné. Pour illustrer voici un exemple parlant : \\
+
+
+Vous organisez un voyage dans un pays lointain que vous rêviez de visiter depuis longtemps. Cela fait des années que vous listez toutes les choses que vous souhaitez faire, tous les sites remarquables que vous souhaitez visiter si vous avez un jour la chance de vous y rendre. Cette occasion se présente enfin, et vous souhaitez optimiser votre séjour sur place. Vous planifiez donc un programme très précis, minuté. Vous consultez les horaires de train, des musées, réservez des restaurants et des hôtels. Vous êtes au final très content de votre programme qui va vous permettre d'optimiser votre temps sur place et de ne pas perdre une miette de vos vacances. Malheureusement tout ne se passe pas comme prévu, et au milieu de votre séjour vous ratez le seul train qui doit vous emmener vers votre destination suivante. Et manque de chance, il ne passe qu'un seul train par semaine dans cette ville très reculée. Et comme un fait exprès, vous êtes au milieu de la jungle et aucun autre moyen de de transport de peut vous extirper de cette situation. Toute la suite de votre voyage est compromise, et vous allez également rater votre vol de retour en France qui est dans quatre jours \\
+
+La morale de cette petite histoire c'est que vous avez cherché une solution optimale eu égard à vos critères de résolution, mais vous avez totalement négligé sa résistance à l'incertitude, à l'imprévu. Une meilleure solution aurait été de sauter cette étape dans cette ville. Ou alors c'est vraiment un "must-see", faire en sorte que rater le train ne compromette pas le reste du voyage. Par exemple louer un hélicoptère, ou alors ne rien prévoir la semaine suivante pour pouvoir amortir un éventuel retard d'une semaine. Bref choisir une solution peut-être moins optimale, mais \textbf{robuste}.
+
+
+\subsection{Caractérisations de la robustesse}
+
+\lettrine{N}{ous} venons donc d'évoquer la notion de \textbf{robustesse} comme étant la capacité d'une solution à s'adapter à l'incertitude. C'est un concept qui est utilisé dans plusieurs domaines comme l'ingénierie ou les statistiques par exemple. Nous allons voir qu'elle peut revêtir divers aspects et se caractériser de plusieurs façons. \\
+
+\subsubsection*{Fiabilité}
+
+Une première façon de voir la robustesse est la fiabilité. La fiabilité est la capacité d'une solution à subir des perturbation sans être invalidée. C'est à dire que la solution reste une solution même en cas de modification de l'environnement. On a vu plus haut qu'un modèle de trajectoire est utilisé pour la résolution de conflits En-Route. Ce modèle tient compte en particulier de l'incertitude liée à la vitesse. Des enveloppes sont construites pour tenir compte de ces incertitudes, et sont utilisées pour vérifier le respect des normes de séparation. On voit que intrinsèquement ces solutions tiennent compte de certains imprévus. \\
+
+\begin{definition}
+	
+	Une solution f est plus fiable qu'une solution g si f a une plus grande probabilité de rester une 			solution après une perturbation.
+	
+\end{definition}
+
+	
+\subsubsection*{Stabilité}
+On dit d'une solution qu'elle est stable si de petites perturbations de l'environnement peuvent être arrangées par de petites modifications de la solution. Par exemple pour résoudre un conflit entre deux avions qui convergent vers un même point on demande à chacun de tourner de 10 degrés à droite. Admettons qu'un des deux avions a un problème de radio et n'est pas en mesure d'exécuter la clairance. Donner 20 degrés droit à l'autre avion pourrait régler le problème, et cette nouvelle solution est relativement proche de la première envisagée.
+\begin{definition}
+Une solution f est plus stable que g si en cas de perturbation il existe une solution alternative plus proche de g que de f.
+\end{definition}
+
+Il est à noter qu'il est important de définir ce qu'on appelle "proximité entre deux solutions. On verra en effet que pour un problème combinatoire comme celui qui nous occupe cette notion ne  vas pas forcément de soi. Nous serons amenés à discuter ce point plus en détail.
+\subsubsection*{Tolérance à l'erreur}
+On dit qu'une solution est tolérante à l'erreur si un petit changement de l'environnement \textbf{garantit} qu'il n'y aura pas de perturbation importante de la solution.
+
+
+\subsection{Attitude pro-active vs attitude réactive}
+
+
