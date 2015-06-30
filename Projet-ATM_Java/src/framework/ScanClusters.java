@@ -1,3 +1,5 @@
+package framework;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,7 +12,7 @@ import java.util.ArrayList;
 public class ScanClusters {
 
 	//	Directories and file paths
-	final static String RootPath = System.getProperty("user.dir");
+	protected final static String RootPath = System.getProperty("user.dir");
 	final static String dataPath = RootPath + "\\data\\RAW\\";
 
 	public static ArrayList getClusters() throws IOException {
@@ -39,12 +41,12 @@ public class ScanClusters {
 					continue;					
 				}
 				
-				/*
+				
 				if (!f_man.isFile()) {
 					System.out.println(maneuversName+" n'existe pas...");
 					continue;
 				}
-				*/
+				
 
 				clusterName = clusterName.replaceAll("[a-z].", "_");
 				String[] tabnum = clusterName.split("_+");
@@ -59,15 +61,17 @@ public class ScanClusters {
 
 }
 
-class cluster {
+/*public class cluster {
 	public int nbAircraft;
 	public int uncertainty;
 	public int clusterId;
+	public String name = "";
 	
 	public cluster(int nb,int uncert,int id) {
 		this.nbAircraft = nb;
 		this.uncertainty = uncert;
 		this.clusterId = id;
+		this.name = "cluster_"+nb+"ac_"+uncert+"err_"+id;
 	}
 	
 	public void print() {
@@ -76,4 +80,4 @@ class cluster {
 		System.out.println("uncertainty:" + uncertainty);
 		System.out.println("clusterId:" + clusterId);
 	}
-}
+}*/

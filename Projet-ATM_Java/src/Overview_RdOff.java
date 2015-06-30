@@ -2,11 +2,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import framework.launcher;
+import framework.ScanClusters;
+import framework.cluster;
+
 /**
  * Main interface class to perturbate and repare an algorithm solution
  * @author Cedric
  */
-public class Overview extends ScanClusters {
+public class Overview_RdOff extends ScanClusters {
 	
 	static int AlgorithmIterations = 5;
 	static String dumpFilePath = RootPath + "\\data\\results\\overview\\clustersresults.csv";

@@ -3,6 +3,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import framework.launcher;
+import framework.ScanClusters;
+import framework.cluster;
+
 /**
  * Main interface class to test if the algorithm Solution is a 1,0 super solution
  * @author Cedric

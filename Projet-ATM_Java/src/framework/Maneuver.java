@@ -1,3 +1,4 @@
+package framework;
 
 /**
  * Lines of type “m k c k0 k1 ka” describe maneuver k,

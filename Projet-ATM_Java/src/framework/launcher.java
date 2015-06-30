@@ -1,3 +1,5 @@
+package framework;
+
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -46,9 +48,9 @@ public class launcher {
 	
 	static NogoodMatrix mat;
 	static Maneuvers    man;
-	private Configuration defaultConfiguration;
-	private Configuration testedConfiguration;
-	private Configuration AlgorithmConfiguration;
+	public Configuration defaultConfiguration;
+	public Configuration testedConfiguration;
+	public Configuration AlgorithmConfiguration;
 
 	private ArrayList<Integer> rdoffs = new ArrayList<Integer>();
 	
@@ -433,7 +435,7 @@ public class launcher {
 		for (int i = 0; i < this.acNumber; i++) {
 			f.write(i + " "+ this.testedConfiguration.getManeuver(i) + "\r");
 		}
-		f.write("sum="+this.testedConfiguration.getCost());
+		//f.write("sum="+this.testedConfiguration.getCost());
 		f.close();
 	}
 }

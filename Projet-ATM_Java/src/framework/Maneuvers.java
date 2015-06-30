@@ -1,3 +1,4 @@
+package framework;
 
 /**
  * Object listing and initializing all the Maneuver(s) objects, 

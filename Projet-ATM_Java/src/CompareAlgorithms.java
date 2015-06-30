@@ -2,6 +2,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import framework.launcher;
+import framework.ScanClusters;
+import framework.cluster;
+
 /**
  * A Interface class file to test our Simulated Annealing algorithm.
  * Compares Constraint Programming solutions with SA solutions for all clusters

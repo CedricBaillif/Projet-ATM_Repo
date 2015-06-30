@@ -2,6 +2,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import framework.launcher;
+import framework.ScanClusters;
+import framework.cluster;
+
 /**
  * >TEST
  * Interface class to evaluate robustness with TWO aircraft in radio-Off instead of one

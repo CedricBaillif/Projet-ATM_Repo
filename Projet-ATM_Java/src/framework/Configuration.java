@@ -1,3 +1,4 @@
+package framework;
 
 import java.util.Arrays;
 
@@ -16,7 +17,7 @@ public class Configuration {
 	private int manNumber;
 	
 	//TODO Must be modified regarding, d_0,d_1 & n_alpha values !!!
-	public int CONFLICT_COST = 60 * this.acNumber;
+	public int CONFLICT_COST = 2500;//60 * this.acNumber;
 	
 	//	Maneuvers Amplitude
 	static int TURN_AMPLITUDE = 1;
@@ -296,6 +297,9 @@ public class Configuration {
 		}
 	}
 	
+	public int[] getAircraft() {
+		return this.aircraft;
+	}
 	public int getManeuver(int n) {
 		return this.aircraft[n];
 	}
